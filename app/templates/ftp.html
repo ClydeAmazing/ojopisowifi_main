@@ -1,0 +1,31 @@
+{% extends "base_site.html" %}
+{% block content%}
+    <div class="row">
+        <div class="col-sm-3">
+            <form class="form-horizontal form-label-left" method="post" id="FtpConnectForm" action="">
+                {% csrf_token %}
+                {% for field in FtpConnectForm %}
+                    <div class="form-group">
+                        {{ field.errors }}
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                    </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-success">Connect</button>
+            </form>
+        </div>
+        <div class="col">
+            <ul>
+            {% for line in dir_contents %}
+                <a href="{{ line.name }}{% if line.type == 'dir' %}/{% endif %}">{{ line.name }}</a>
+            {% endfor %}
+            </ul>
+            <br>
+            <ul>
+            {% for line in error %}
+                <li>{{ line }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+{% endblock content %}

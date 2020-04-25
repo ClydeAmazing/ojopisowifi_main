@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+    {% block head %}
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+        {% block title %}<title>{{ hotspot }}</title> {% endblock title %}
+        <!-- Bootstrap css -->
+        <link rel="stylesheet" href="/static/vendors/bootstrap-4.1.1/dist/css/bootstrap.min.css">
+        <!-- Custom CSS -->
+        <link rel="stylesheet" href="/static/build/css/control.css">
+        <!-- Fontawesome CSS -->
+        <link rel="stylesheet" href="/static/vendors/fontawesome-free-5.4.1-web/css/all.css">
+    </head>
+    {% endblock head %}
+    {% block body %}
+    <body>
+        <div class="wrapper">
+            {% block sidebar %}
+            {% endblock sidebar %}
+            {% block content %}
+            <div id="content">
+                {% block navbar %}
+                <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                    <!-- <div class="container-fluid"> -->
+                        <button type="button" id="sidebarCollapse" class="btn btn-info ml-2">
+                            <i class="fas fa-align-left"></i>
+                        </button>
+                        <a class="navbar-brand ml-2" href="#">Control Panel</a>
+                        <button type="button" class="btn btn-dark d-inline-block d-lg-none ml-auto ml-2" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                            <i class="fas fa-align-justify"></i>
+                        </button>
+                        
+                        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                            <ul class="navbar-nav ml-auto">
+                              <li class="nav-item">
+                                <a class="nav-link" href="{% url 'app:portal' %}">
+                                  <i class="fas fa-external-link-alt"></i> Main Portal</a>
+                              </li>  
+                              <li class="nav-item dropdown">
+                                <button class="btn btn-primary" type="button" id="navbarDropdownMenuLink-4" data-toggle="dropdown"
+                                  aria-haspopup="true" aria-expanded="false">
+                                  <span class="fas fa-user"></span> {{ user.get_username }} </a>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-right dropdown-info" aria-labelledby="navbarDropdownMenuLink-4">
+                                  <a class="dropdown-item" href="{% url 'admin:index' %}">Admin Settings</a>
+                                  <a class="dropdown-item" href="{% url 'admin:logout' %}">Log out</a>
+                                </div>
+                              </li>
+                            </ul>
+                      </div>
+                    <!-- </div> -->
+                </nav>
+                {% endblock navbar %}
+                {% block main %}
+                
+                {% endblock main %}
+            </div>
+            {% endblock content %}
+        </div>
+        {% block main_scripts %}
+        <!-- JQuery -->
+        <script src="/static/vendors/jquery-3.3.1/jquery.js"></script>
+        <!-- Bootstrap JS -->
+        <script src="/static/vendors/bootstrap-4.1.1/dist/js/bootstrap.bundle.min.js"></script>
+        {% endblock main_scripts %}
+        {% block custom_scripts %} 
+        {% endblock custom_scripts %}
+    </body>
+    {% endblock body %}
+</html>
