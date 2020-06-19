@@ -1,2 +1,3 @@
-# ojopisowifi_main
-Main ojopisowifi repository
+# OJO PISOWIFI
+Easy to use Wifi Vending Software
+
