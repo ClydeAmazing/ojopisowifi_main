@@ -11,8 +11,8 @@ Download full image for Raspberry Pi 3 and Orange Pi One at:
 5. Simple Admin Dashboard
 5. Load Balanced default Bandwith setup
 6. Open Source
-7. Raspberry Pi 3 Support
-8. Orange Pi One Support
+7. Raspberry Pi 3 Compatible
+8. Orange Pi One Compatible
 9. Proven and Tested software
 
 ### System Screenshots
