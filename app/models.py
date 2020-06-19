@@ -18,13 +18,13 @@ class Clients(TrackingModelMixin, models.Model):
     )
 
     IP_Address = models.CharField(max_length=15, verbose_name='IP')
-    MAC_Address = models.CharField(max_length=255, verbose_name='MAC', unique=True)
-    Device_Name = models.CharField(max_length=255, verbose_name='Device', null=True, blank=True)
+    MAC_Address = models.CharField(max_length=255, verbose_name='MAC Address', unique=True)
+    Device_Name = models.CharField(max_length=255, verbose_name='Device Name', null=True, blank=True)
     Status = models.CharField(max_length=255, default='Disconnected', choices=status_choices)
-    Connected_On = models.DateTimeField(null=True, blank=True) #
+    Connected_On = models.DateTimeField(null=True, blank=True)
     Time_Left = models.DurationField(default=timezone.timedelta(minutes=0))
     Expire_On = models.DateTimeField(null=True, blank=True)
-    Last_Updated = models.DateTimeField(default=timezone.now)
+    Last_Updated = models.DateTimeField(default=timezone.now, null=True, blank=True)
     Upload_Rate = models.IntegerField(verbose_name='Upload Bandwidth', help_text='Specify client internet upload bandwidth in Kbps. No value = unlimited bandwidth', null=True, blank=True )
     Download_Rate = models.IntegerField(verbose_name='Download Bandwidth', help_text='Specify client internet download bandwidth in Kbps. No value = unlimited bandwidth', null=True, blank=True )
 
@@ -100,6 +100,8 @@ class Clients(TrackingModelMixin, models.Model):
                         self.Expire_On = timezone.now() + self.Time_Left
                         self.Connected_On = timezone.now()
 
+            self.Last_Updated = timezone.now()
+
         elif 'Time_Left' in self.tracker.changed:
             prev_time_left = self.tracker.changed['Time_Left']
             curr_time_left = self.Time_Left
@@ -119,6 +121,8 @@ class Clients(TrackingModelMixin, models.Model):
                 if self.Status == 'Connected':
                     self.Expire_On = timezone.now() + self.Time_Left
 
+            self.Last_Updated = timezone.now()
+
         else:
             if self.Status == 'Connected':
                 if self.remaining_time <= timedelta(0):
@@ -126,6 +130,8 @@ class Clients(TrackingModelMixin, models.Model):
                     self.Time_Left = timedelta(0)
                     self.Expire_On = None
                     self.Connected_On = None
+                    
+                    self.Last_Updated = timezone.now()
                 else:
                     self.Time_Left = self.remaining_time
 
@@ -135,19 +141,31 @@ class Clients(TrackingModelMixin, models.Model):
                     self.Expire_On = timezone.now() + self.Time_Left
                     self.Connected_On = timezone.now()
 
-        self.Last_Updated = timezone.now()
+                    self.Last_Updated = timezone.now()
 
         super(Clients, self).save(*args, **kwargs)
 
     class Meta:
-        verbose_name = 'Clients'
+        verbose_name = 'Client'
         verbose_name_plural = 'Clients'
 
     def __str__(self):
         return str(self.IP_Address) + ' | ' + str(self.MAC_Address)
 
-class Ledger(models.Model):
+class Whitelist(models.Model):
+    MAC_Address = models.CharField(max_length=255, verbose_name='MAC', unique=True)
+    Device_Name = models.CharField(max_length=255, null=True, blank=True)
 
+    class Meta:
+        verbose_name = 'Whitelisted Device'
+        verbose_name_plural = 'Whitelisted Devices'
+
+    def __str__(self):
+        name =  self.MAC_Address if not self.Device_Name else self.Device_Name
+        return 'Device: ' + name
+
+
+class Ledger(models.Model):
     Date = models.DateTimeField()
     Client = models.CharField(max_length=50)
     Denomination = models.IntegerField()
@@ -166,12 +184,6 @@ class Ledger(models.Model):
 
 
 class CoinSlot(models.Model):
-    status_choices = (
-        ('Available', 'Available'),
-        ('Not Available', 'Not Available')
-    )
-
-    # Status = models.CharField(max_length=15, choices=status_choices, default='Not Available')
     Client = models.CharField(max_length=17, null=True, blank=True)
     Last_Updated = models.DateTimeField()
     Slot_ID = models.CharField(max_length=10)
@@ -185,12 +197,13 @@ class CoinSlot(models.Model):
         return 'Slot no: ' + str(self.pk)
 
 class Rates(models.Model):
-    Denom = models.IntegerField(verbose_name='Denomination', help_text="Enter coin denomination.")
-    Pulse = models.IntegerField()
-    Minutes = models.DurationField(help_text='Coin value in minutes.')
+    Edit = "Edit"
+    Denom = models.IntegerField(verbose_name='Denomination', help_text="Coin denomination corresponding to specified coinslot pulse.")
+    Pulse = models.IntegerField(help_text="Coinslot pulse count. Don't change this if you dont know what you're doing")
+    Minutes = models.DurationField(verbose_name='Duration', help_text='Internet access duration in hh:mm:ss format')
 
     class Meta:
-        verbose_name = "Rates"
+        verbose_name = "Rate"
         verbose_name_plural = "Rates"
 
     def __str__(self):
@@ -228,7 +241,6 @@ class Settings(models.Model):
 
     Hotspot_Name = models.CharField(max_length=255)
     Hotspot_Address = models.CharField(max_length=255, null=True, blank=True)
-    # Device_ID = models.CharField(max_length=255, null=True, blank=True)
     BG_Image = models.ImageField(upload_to=get_image_path, blank=True, null=True)
     Slot_Timeout = models.IntegerField(help_text='Slot timeout in seconds.')
     Rate_Type = models.CharField(max_length=25, default="auto", choices=rate_type_choices, help_text='Select "Minutes/Peso" to use  Minutes / Peso value, else use "Custom Rate" to manually setup Rates based on coin value.')
@@ -247,11 +259,11 @@ class Settings(models.Model):
                 raise ValidationError('Coinslot Pin should not be the same as Light Pin.')
 
     class Meta:
-        verbose_name = 'Settings'
+        verbose_name = 'Setting'
         verbose_name_plural = 'Settings'
 
     def __str__(self):
-        return 'information'
+        return 'Details'
 
 class Network(models.Model):
     Upload_Rate = models.IntegerField(verbose_name='Upload Bandwidth', help_text='Specify global internet upload bandwidth in Kbps. No value = unlimited bandwidth', null=True, blank=True )
@@ -265,20 +277,6 @@ class Network(models.Model):
         return 'Bandwidth Settings'
 
 
-class Device(models.Model):
-    Device_ID = models.CharField(max_length=255, null=True, blank=True)
-    Ethernet_MAC = models.CharField(max_length=50, null=True, blank=True)
-    Wlan_MAC = models.CharField(max_length=50, null=True, blank=True)
-    Device_SN = models.CharField(max_length=50, null=True, blank=True)
-    Activation_Status = models.CharField(max_length=50, null=True, blank=True)
-
-    class Meta:
-        verbose_name = 'Device'
-        verbose_name_plural = 'Device'
-
-    def __str__(self):
-        return self.Device_ID
-
 class Vouchers(models.Model):
     status_choices = (
         ('Used', 'Used'),
@@ -287,18 +285,20 @@ class Vouchers(models.Model):
     )
 
     def generate_code(size=6):
-        random_code = ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(size))
-        count = Vouchers.objects.filter(Voucher_code=random_code).count()
+        found = False
+        random_code = None
 
-        while count != 0 :
+        while not found:
             random_code = ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(size))
             count = Vouchers.objects.filter(Voucher_code=random_code).count()
+            if count == 0:
+                found = True
 
         return random_code
 
     Voucher_code = models.CharField(default=generate_code, max_length=20, null=False, blank=False, unique=True)
-    Voucher_status = models.CharField(verbose_name='Status', max_length=25, choices=status_choices, null=False, blank=False)
-    Voucher_client = models.CharField(verbose_name='Client', max_length=50, null=True, blank=True)
+    Voucher_status = models.CharField(verbose_name='Status', max_length=25, choices=status_choices, default='Not Used', null=False, blank=False)
+    Voucher_client = models.CharField(verbose_name='Client', max_length=50, null=True, blank=True, help_text="Voucher code user. * Optional")
     Voucher_create_date_time = models.DateTimeField(verbose_name='Created Date/Time', auto_now_add=True)
     Voucher_used_date_time = models.DateTimeField(verbose_name='Used Date/Time', null=True, blank=True)
     Voucher_time_value = models.DurationField(verbose_name='Time Value', null=True, blank=True, help_text='Time value in minutes.')
@@ -313,8 +313,24 @@ class Vouchers(models.Model):
         super(Vouchers, self).save(*args, **kwargs)
 
     class Meta:
-        verbose_name = 'Vouchers'
+        verbose_name = 'Voucher'
         verbose_name_plural = 'Vouchers'
 
     def __str__(self):
         return 'Voucher ' + self.Voucher_code
+
+
+class Device(models.Model):
+    Device_ID = models.CharField(max_length=255, null=True, blank=True)
+    Ethernet_MAC = models.CharField(max_length=50, null=True, blank=True)
+    Device_SN = models.CharField(max_length=50, null=True, blank=True)
+    pub_rsa = models.TextField(null=False, blank=False)
+    ca = models.CharField(max_length=200, unique=True, null=False, blank=False)
+    action = models.IntegerField(default=0)
+
+    class Meta:
+        verbose_name = 'Device'
+        verbose_name_plural = 'Device'
+
+    def __str__(self):
+        return 'xxx'

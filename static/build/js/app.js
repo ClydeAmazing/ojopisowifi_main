@@ -312,7 +312,7 @@ $(function(){
                         total_coins = response['Total_Coins'];
 
                         total_time = new Date(null);
-                        total_time.setMinutes(response['Total_Time']);
+                        total_time.setSeconds(response['Total_Time']);
                         total_time_val = total_time.getTime();
 
                         $('.btn-done').removeClass('btn-outline-default').addClass('btn-outline-success');

@@ -8,16 +8,19 @@ django.setup()
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 from django.db import transaction
-from app.models import Clients, CoinSlot, Settings, Rates, Ledger, CoinQueue, Network
+from app.models import Clients, CoinSlot, Settings, Rates, Ledger, CoinQueue, Network, Device
+from app.opw import fprint
+from pathlib import Path
 import requests
 import time
-import OPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 import multiprocessing
 import threading
 import logging
 from datetime import timedelta
 
-logging.basicConfig(filename='cid.log', format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.INFO)
+LOG_PATH = Path(__file__).parent / 'cid.log'
+logging.basicConfig(filename=LOG_PATH, format='%(asctime)s - %(levelname)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S', level=logging.INFO)
 
 settings = Settings.objects.get(id=1)	
 input_pin = settings.Coinslot_Pin
@@ -26,29 +29,9 @@ rate_type = settings.Rate_Type
 base_rate = settings.Base_Value
 timeout = settings.Slot_Timeout
 
-global_bandwidth = Network.objects.get(id=1)
-upload_rate = global_bandwidth.Upload_Rate
-download_rate = global_bandwidth.Download_Rate
+#Enable below if running in Orange PI One SBC
+#GPIO.setboard(GPIO.PCPCPLUS)
 
-iface = 'eth1'
-
-if upload_rate:
-	cmd = ['tcset', iface, '--rate', '{}kbps'.format(upload_rate), '--direction', 'incoming']
-	up_res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-	logging.info(up_res.stdout)
-	logging.error(up_res.stderr)
-
-if download_rate:
-	cmd = ['tcset', iface, '--rate', '{}kbps'.format(download_rate), '--direction', 'outgoing']
-	dn_res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-	logging.info(dn_res.stdout)
-	logging.error(dn_res.stderr)
-
-lights = 0
-process = None
-event = None
-
-GPIO.setboard(GPIO.PCPCPLUS)
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(input_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(light_pin, GPIO.OUT)
@@ -117,6 +100,14 @@ def main():
 
 if __name__ == '__main__':
 	try:
+		dev = Device.objects.get(pk=1)
+		fp = fprint()
+		if fp:
+			dev.Ethernet_MAC = fp['eth0_mac']
+			dev.Device_SN = fp['serial']
+		dev.action = 0
+		dev.save()
+		
 		with transaction.atomic():
 			conn_clients = Clients.objects.filter(Status="Connected")
 			for client in conn_clients:
@@ -143,7 +134,6 @@ if __name__ == '__main__':
 			time.sleep(1)
 
 	except Exception as e:
-		logging.error('Error occured' + str(e))
-
+		logging.error(str(e))
 	finally:
 		GPIO.cleanup()

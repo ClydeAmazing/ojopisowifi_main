@@ -1,4 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponseForbidden, HttpResponse
 from django.shortcuts import render, redirect
 from django.views import View
@@ -9,17 +10,9 @@ from django.db.models import Sum, F
 from django.contrib import messages
 from datetime import timedelta
 from getmac import getmac
-from app.opw import device, fprint
+from app.opw import cc, grc
 from app import models
-# import configparser #
-import subprocess #
-# import paramiko #
-# import socket
-# import json
 import time
-# import uuid
-import os
-# import hashlib
 
 local_ip = ['::1', '127.0.0.1', '10.0.0.1']
 
@@ -162,7 +155,6 @@ class Portal(View):
                 info = self.getClientInfo(ip, mac)
             else:
                 try:
-
                     client = models.Clients()
                     client.IP_Address = ip
                     client.Device_Name = None
@@ -309,7 +301,7 @@ class Commit(View):
             try:
                 queue = models.CoinQueue.objects.get(Client=client)
                 data['Total_Coins'] = queue.Total_Coins
-                data['Total_Time'] = queue.Total_Time.total_seconds()/60
+                data['Total_Time'] = int(timedelta.total_seconds(queue.Total_Time))
 
             except ObjectDoesNotExist:
                 data['Total_Coins'] = 0
@@ -451,15 +443,64 @@ class Redeem(View):
         else:
             return HttpResponseForbidden(request)
 
+# Control Section
+
+class GenerateRC(View):
+    def post(self, request):
+        if request.is_ajax() and request.user.is_authenticated:
+            if not cc():
+                response = dict()
+                rc = grc()
+                response['key'] = rc.decode('utf-8')
+                return  JsonResponse(response)
+            else:
+                return HttpResponse('Device is already activated')
+        else:
+            return HttpResponseForbidden(request)
+
+
+class ActivateDevice(View):
+    def post(self, request):
+        if not request.is_ajax and not request.user.is_authenticated:
+            return HttpResponseForbidden(request)
+        
+        ak = request.POST.get('activation_key', None)
+        response = dict()
+        if ak:
+            result = cc(ak)
+            if not result:
+                response['message'] = 'Error'
+                return JsonResponse(response)
+
+            device = models.Device.objects.get(pk=1)
+            device.Device_ID = ak
+            device.save()
+
+            response['message'] = 'Success'
+            return JsonResponse(response)
+        else:
+            response['message'] = 'Error'
+            return JsonResponse(response)
+
+
 class Control(View):
     template_name = 'control.html'
 
     def post(self, request):
-        if request.is_ajax():
-            response = None
+        if request.is_ajax() and request.user.is_authenticated:
+            response = dict()
             action = request.POST.get("action", None)
             if action:
-                response = device(action)
+                dev = models.Device.objects.get(pk=1)
+                if action == 'poweroff':
+                    dev.action = 1
+                elif action == 'reboot':
+                    dev.action = 2
+                elif action == 'refresh':
+                    dev.action = 3
+
+                dev.save()
+                response['message'] = 'Success'
 
             return JsonResponse(response)
         else:
@@ -491,58 +532,82 @@ class Control(View):
         info['hotspot'] = settings.Hotspot_Name
         info['slot_timeout'] = settings.Slot_Timeout
 
-        fp = fprint()
-
         try:
             device = models.Device.objects.get(pk=1)
-            if fp['hash'] == device.Device_ID and device.Activation_Status == '#FFFFFF' or request.user.is_superuser:
+            cc_res = cc()
+            if cc_res or request.user.is_superuser:
                 info['message'] = None
             else:
                 messages.error(request, serial_error)
                 info['message'] = serial_error
+
+            if not cc_res:
+                info['license_status'] = 'Not Activated'
+                info['license'] = None
+            else:
+                info['license_status'] = 'Activated'
+                info['license'] = device.Device_ID
+
             return render(request, self.template_name, context=info)
 
         except ObjectDoesNotExist:
             return HttpResponse(serial_error)
 
+# End of Control Section
 
 class Sweep(View):
 
     def get(self, request):
         if request.is_ajax() and request.META['REMOTE_ADDR'] in local_ip:
-
             clients = models.Clients.objects.all()
+            settings = models.Settings.objects.get(pk=1)
+            device = models.Device.objects.get(pk=1)
+
+            context = dict()
 
             with transaction.atomic():
                 for client in clients:
+                    if not client.Last_Updated:
+                        client.Last_Updated = timezone.now()
                     client.save()
 
-            return JsonResponse(list(models.Clients.objects.all().values()), safe=False)
+            with transaction.atomic():
+                for client in clients:
+                    time_diff = timedelta.total_seconds(timezone.now()-client.Last_Updated)
+                    if client.Status == 'Disconnected' and time_diff >= (settings.Inactive_Timeout * 60):
+                        client.delete()
+
+            context['clients'] = list(models.Clients.objects.all().values())
+            context['system_action'] = device.action
+            whitelist = models.Whitelist.objects.all().values_list('MAC_Address')
+            context['whitelist'] = list(x[0] for x in whitelist)
+
+            return JsonResponse(context, safe=False)
         else:
             return HttpResponseForbidden(request)
 
 
-class RelayStat(View):
+# class RelayStat(View):
 
-    def get(self, request):
-        if request.is_ajax() and request.META['REMOTE_ADDR'] in local_ip:
-            slot = models.CoinSlot.objects.get(pk=1)
-            return JsonResponse(slot.Status, safe=False)
-        else:
-            return HttpResponseForbidden(request)
+#     def get(self, request):
+#         if request.is_ajax() and request.META['REMOTE_ADDR'] in local_ip:
+#             slot = models.CoinSlot.objects.get(pk=1)
+#             return JsonResponse(slot.Status, safe=False)
+#         else:
+#             return HttpResponseForbidden(request)
 
-class Settings(View):
+# class Settings(View):
 
-    def get(self, request):
-        if request.is_ajax() and request.META['REMOTE_ADDR'] == '::1' in local_ip:
-            settings = models.Settings.objects.values().get(pk=1)
-            return JsonResponse(settings, safe=False)
-        else:
-            return HttpResponseForbidden(request)
+#     def get(self, request):
+#         if request.is_ajax() and request.META['REMOTE_ADDR'] in local_ip:
+#             settings = models.Settings.objects.values().get(pk=1)
+#             return JsonResponse(settings, safe=False)
+#         else:
+#             return HttpResponseForbidden(request)
 
 
-class EloadPortal(View):
-    template_name = 'eload_portal.html'
-    def get(self, request, template_name=template_name):
-        return render(request, template_name, context={})
+# class EloadPortal(View):
+#     template_name = 'eload_portal.html'
+#     def get(self, request, template_name=template_name):
+#         return render(request, template_name, context={})
 

@@ -13,11 +13,6 @@
                     <i class="fa fa-home"></i>General
                 </a>
             </li>
-            <!-- <li class="menu">
-                <a href="{% url 'admin:index' %}">
-                    <i class="fas fa-cog"></i>Clients
-                </a>
-            </li> -->
             <li class="menu menu-device">
                 <a href="#">
                     <i class="fas fa-power-off"></i>Device
@@ -26,6 +21,11 @@
             <li class="menu">
                 <a href="{% url 'admin:index' %}">
                     <i class="fas fa-cog"></i>Admin Settings
+                </a>
+            </li>
+            <li class="menu menu-license">
+                <a href="#">
+                    <i class="fas fa-key"></i>License
                 </a>
             </li>
             <li class="menu">
@@ -108,11 +108,6 @@
             </div>
             <div class="row">
                 <div class="col-md-3 mb-3">
-                    <button type="button" class="btn btn-success w-100" data-toggle="modal" data-target="#restart-modal">
-                        <i class="fa fa-sync"></i> Restart Network
-                    </button>
-                </div>
-                <div class="col-md-3 mb-3">
                     <button type="button" class="btn btn-warning w-100" data-toggle="modal" data-target="#reboot-modal">
                         <i class="fa fa-undo"></i> Reboot Device
                     </button>
@@ -122,6 +117,39 @@
                         <i class="fas fa-power-off"></i> Power Off
                     </button>
                 </div>
+            </div>
+        </div>
+        <div class="content license d-none">
+            <div class="row">
+                <div class="col-12">
+                    <h3>License</h3>
+                </div>
+            </div>
+            <hr class="mt-0 mb-2">
+            <div class="row">
+                {% if license_status == 'Activated' %}
+                    <div class="col-12">
+                        <p class="mb-2">Status:</p>
+                        <h2 class="text-success">Activated</h2>
+                        <p class="mb-2">Activation Key:</p>
+                        <p class="text-dark mb-0" style="overflow-wrap: anywhere;"> {{ license }} </p>
+                        <hr>
+                        <p class="text-info mb-0" style="font-size: 1em;">You are using the full functionality of the software.</p>
+                        <p class="text-info" style="font-size: 1em;">Thank you for using OJO Wifi Vending machine.</p>
+                    </div>
+                {% else %}
+                    <div class="col-md-6 col-12">
+                        <p class="mb-2">Status:</p>
+                        <h2 class="text-danger">Not Activated</h2>
+                        <p class="mb-2">Registration Code:</p>
+                        <input type="text" class="form-control mb-2" readonly id="text-registration-code">
+                        <button type="button" class="btn btn-sm btn-primary mb-3 btn-generate">Generate</button>
+                        <p class="mb-2">Activation Key:</p>
+                        <input type="text" class="form-control mb-2" placeholder="Paste activation here" id="text-activation-key" spellcheck="false">
+                        <input type="submit" class="btn btn-sm btn-success mb-2 btn-activate" value="Activate"></input>
+                    </div>
+                {% endif %}
+                
             </div>
         </div>
     </div>
@@ -186,22 +214,70 @@
                 </div>
             </div>
         </div>
-        <div class="modal fade" id="loader-modal" role="dialog" tabindex="-1" aria-labelledby="loaderModal" data-keyboard="false" data-backdrop="static">
-        <div class="modal-dialog modal-sm" role="document">
-            <div class="modal-content">
-                <div class="modal-body text-center">
-                    <div class="loader-text"><span class="fa fa-spinner fa-spin"></span>  Applying...</div>
+        <!-- <div class="modal fade" id="loader-modal" role="dialog" tabindex="-1" aria-labelledby="loaderModal" data-keyboard="false" data-backdrop="static"> -->
+        <div class="modal fade" id="loader-modal" data-keyboard="false">
+            <div class="modal-dialog modal-sm" role="document">
+                <div class="modal-content">
+                    <div class="modal-body text-center">
+                        <div class="loader-text"><span class="fa fa-spinner fa-spin"></span></div>
+                    </div>
                 </div>
             </div>
+            <!-- <button type="button" class="btn btn-sm btn-danger btn-modal-dismiss" data-dismiss="modal">Cancel</button> -->
         </div>
-    </div>
+
+        <!-- Success Modal -->
+        <div id="success-modal" class="modal fade" data-keyboard="false" data-backdrop="static">
+            <div class="modal-dialog modal-confirm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div class="icon-box">
+                            <i class="fa fa-check"></i>
+                        </div>
+                    </div>
+                    <div class="modal-body text-center">
+                        <h4>Great!</h4> 
+                        <p>Your device has been activated successfully.</p>
+                        <button class="btn btn-success" data-dismiss="modal" onclick="window.location.href='/app/control';"><span>Got it</span></button>
+                    </div>
+                </div>
+            </div>
+        </div> 
+        <!-- End Success Modal -->
+
+        <!-- Error Modal -->
+        <div id="error-modal" class="modal fade">
+            <div class="modal-dialog modal-confirm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div class="icon-box">
+                            <i class="fa fa-times"></i>
+                        </div>              
+                        <!-- <h4 class="modal-title">Are you sure?</h4>   -->
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <h4>Sorry :(</h4>
+                        <p>You've entered an invalid activation code.</p>
+                        <button class="btn btn-success" data-dismiss="modal">Try again</button>
+                        <!-- <p>Please try again.</p> -->
+                    </div>
+                </div>
+            </div>
+        </div>     
+        <!-- End Error Modal -->
+
 {% endblock main %}
 {% block custom_scripts %}
+
     <script type="text/javascript">
         $(document).ready(function(){
+
+            // Sidebar Collapse - Expand
             $('#sidebarCollapse').on('click', function(){
                 $('#sidebar').toggleClass('active');
             });
+            // Sidebar Menu
 
             $('.menu').on('click', function(){
                 $('.menu').removeClass('active');
@@ -211,71 +287,54 @@
             $('.menu-dashboard').on('click', function(){
                 $('.dashboard').removeClass('d-none');
                 $('.device').addClass('d-none');
+                $('.license').addClass('d-none');
             })
 
             $('.menu-device').on('click', function(){
                 $('.dashboard').addClass('d-none');
                 $('.device').removeClass('d-none');
+                $('.license').addClass('d-none');
+            })
+            $('.menu-license').on('click', function(){
+                $('.dashboard').addClass('d-none');
+                $('.device').addClass('d-none');
+                $('.license').removeClass('d-none');
             })
 
-            $('.btn-reboot').on('click', function(){
-                $("#loader-modal").modal('show');
-
+            function device_action(action, text) {
+                
                 var token = $('input[name=csrfmiddlewaretoken]').val();
                 var data = {
                     'csrfmiddlewaretoken': token,
-                    'action': 'reboot'
+                    'action': action
                     }
                 $.ajax({
                     method: 'POST',
                     url: '/app/control',
-                    data: data
+                    data: data,
+                    beforeSend: function(){
+                        $("#loader-modal .loader-text").append(text)
+                        $("#loader-modal").modal('show');
+                    },
+                    success: function(result){
+                        setTimeout(function(){
+                            window.location.href='/app/control'
+                        }, 20000);
+                    }
                 });
-                setTimeout(function(){
-                    window.location.href='/app/control'
-                }, 3000);
+                
+            }
 
+            // Device Actions 
+            $('.btn-reboot').on('click', function(){
+                device_action('reboot', '   Rebooting..');
             })
 
             $('.btn-poweroff').on('click', function(){
-                $("#loader-modal").modal('show');
-
-                var token = $('input[name=csrfmiddlewaretoken]').val();
-                var data = {
-                    'csrfmiddlewaretoken': token,
-                    'action': 'poweroff'
-                    }
-                $.ajax({
-                    method: 'POST',
-                    url: '/app/control',
-                    data: data
-                })
-                setTimeout(function(){
-                    window.location.href='/app/control'
-                }, 3000);
-            })
-
-            $('.btn-restart').on('click', function(){
-                $("#loader-modal").modal('show');
-
-                var token = $('input[name=csrfmiddlewaretoken]').val();
-                var data = {
-                    'csrfmiddlewaretoken': token,
-                    'action': 'refresh'
-                    }
-                $.ajax({
-                    method: 'POST',
-                    url: '/app/control',
-                    data: data
-                })
-                setTimeout(function(){
-                    window.location.href='/app/control'
-                }, 3000);
+                device_action('poweroff', '   Shutting down..');
             })
 
             $('.btn-reset').on('click', function(){
-                $("#loader-modal").modal('show');
-
                 var token = $('input[name=csrfmiddlewaretoken]').val();
                 var data = {
                     'csrfmiddlewaretoken': token,
@@ -284,11 +343,64 @@
                 $.ajax({
                     method: 'GET',
                     url: '/app/control',
-                    data: data
+                    data: data,
+                    beforeSend: function(){
+                        $("#loader-modal .loader-text").append('   Resetting dashboard counter..')
+                        $("#loader-modal").modal('show');
+                    },
+                    success: function(result){
+                        setTimeout(function(){
+                            window.location.href='/app/control'
+                        }, 3000);
+                    }
                 })
-                setTimeout(function(){
-                    window.location.href='/app/control'
-                }, 3000);
+            })
+            
+            // License Actions
+            $('.btn-generate').on('click', function(e){
+                var token = $('input[name=csrfmiddlewaretoken]').val();
+                var data = {
+                    'csrfmiddlewaretoken': token,
+                    }
+                $.ajax({
+                    method: 'POST',
+                    url: '/app/gen_rc',
+                    data: data,
+                    success: function(result){
+                        $("#text-registration-code").val(result.key);
+                        $(".btn-generate").prop('disabled', true);
+                    }
+                })
+            })
+
+            $('.btn-activate').on('click', function(e){
+                var token = $('input[name=csrfmiddlewaretoken]').val();
+
+                if(!$("#text-activation-key").val()){
+                    $("#text-activation-key").addClass("is-invalid")
+                }else{
+                    
+                    var data = {
+                        'csrfmiddlewaretoken': token,
+                        'activation_key': $("#text-activation-key").val()
+                    }
+                    $.ajax({
+                        method: 'POST',
+                        url: "/app/activate",
+                        data: data,
+                        success: function(result){
+                            // console.log(result.message)
+                            if (result.message == 'Success'){
+                                $("#success-modal").modal("show");
+                                $("#text-activation-key").addClass("is-valid")
+                            }
+                            if (result.message == 'Error'){
+                                $("#error-modal").modal("show");
+                                $("#text-activation-key").addClass("is-invalid");
+                            }
+                        }
+                    })
+                }
             })
         });
     </script>  

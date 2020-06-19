@@ -1,0 +1,21 @@
+.card-captive {
+    max-width: 25rem;
+    background-image: url('/static/build/images/bg.png');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-blend-mode: hard-light;
+}
+
+.slot_countdown{
+    -webkit-transition: none !important;
+    -moz-transition: none !important;
+    -ms-transition: none !important;
+    -o-transition: none !important;
+    transition: none !important;
+}
+
+.btn-rounded{
+    border-radius: 20px; !important
+}
+
