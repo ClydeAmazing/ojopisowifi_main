@@ -520,14 +520,15 @@ class Control(View):
         try:
             ledger = models.Ledger.objects.all()
             sum_ledger = ledger.aggregate(denom=Sum('Denomination'))
-            info['denom'] = sum_ledger['denom']
+            info['denom'] = sum_ledger['denom'] if sum_ledger['denom'] else 0
         except ObjectDoesNotExist:
             info['denom'] = 0
 
         
-        users = models.Clients.objects.filter(Status='Connected')
+        users = models.Clients.objects.all()
 
-        info['user_count'] = users.count()
+        info['connected_count'] = users.filter(Status='Connected').count()
+        info['disconnected_count'] = users.exclude(Status='Connected').count()
         info['count'] = ledger.count()
         info['hotspot'] = settings.Hotspot_Name
         info['slot_timeout'] = settings.Slot_Timeout

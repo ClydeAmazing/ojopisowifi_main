@@ -211,7 +211,7 @@ class Rates(models.Model):
 
 
 class CoinQueue(models.Model):
-    Client = models.CharField(max_length=15, null=True, blank=True)
+    Client = models.CharField(max_length=17, null=True, blank=True)
     Total_Coins = models.IntegerField(null=True, blank=True, default=0)
     Total_Time = models.DurationField(null=True, blank=True, default=timedelta())
 

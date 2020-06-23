@@ -10,7 +10,7 @@
         <ul class="list-unstyled components">
             <li class="menu active menu-dashboard">
                 <a href="#">
-                    <i class="fa fa-home"></i>General
+                    <i class="fa fa-home"></i>Dashboard
                 </a>
             </li>
             <li class="menu menu-device">
@@ -48,23 +48,31 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-xl-3 col-sm-6 mb-3">
-                    <div class="card text-white bg-success o-hidden h-100">
+                <div class="col-xl-3 col-sm-6 mb-2">
+                    <div class="card text-dark bg-light overflow-hidden h-100">
                         <div class="card-header">
-                            <span class="float-left">Connected Clients</span>
+                            <span class="float-left">Clients</span>
                         </div>
                         <div class="card-body">
                             <div class="card-body-icon">
                                 <i class="fas fa-fw fa-users"></i>
                             </div>
-                            <div class="mr-5">
-                                <h2><strong>{{ user_count }}</strong></h2>
+                            <div class="mr-5 text-center float-left">
+                                <h3 class="text-success"><strong>{{ connected_count }}</strong></h3>
+                                <small class="text-success">Connected</small>
+                            </div>
+                            <div class="text-center">
+                                <h3 class="text-danger"><strong>{{ disconnected_count }}</strong></h3>
+                                <small class="text-danger">Disconnected</small>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-sm-6 mb-3">
-                    <div class="card text-white bg-info o-hidden h-100">
+            </div>
+            <hr />
+            <div class="row">
+                <div class="col-xl-3 col-6 mb-2">
+                    <div class="card text-white bg-info overflow-hidden h-100">
                         <div class="card-header">
                             <span class="float-left">Total Sales</span>
                         </div>
@@ -73,13 +81,13 @@
                                 <i class="fas fa-fw fa-list"></i>
                             </div>
                             <div class="mr-5">
-                                <h2><strong>P {{ denom }}</strong></h2>
+                                <h3>{{ denom }}</h3>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-xl-3 col-sm-6 mb-3">
-                    <div class="card text-white bg-warning o-hidden h-100">
+                <div class="col-xl-3 col-6 mb-2">
+                    <div class="card text-white bg-warning overflow-hidden h-100">
                         <div class="card-header">
                             <span class="float-left">Coin Count</span>
                         </div>
@@ -88,7 +96,7 @@
                                 <i class="fas fa-fw fa-coins"></i>
                             </div>
                             <div class="mr-5">
-                                <h2><strong>{{ count }}</strong></h2>
+                                <h3>{{ count }}</h3>
                             </div>
                         </div>
                     </div>
@@ -96,7 +104,7 @@
             </div>
             <div class="row">
                 <div class="col-1">
-                    <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#reset-modal">Reset Dashboard</button>
+                    <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#reset-modal"><span class="fa fa-window-close"></span>  Reset</button>
                 </div>
             </div>
         </div>
@@ -389,7 +397,6 @@
                         url: "/app/activate",
                         data: data,
                         success: function(result){
-                            // console.log(result.message)
                             if (result.message == 'Success'){
                                 $("#success-modal").modal("show");
                                 $("#text-activation-key").addClass("is-valid")
