@@ -1,3 +1,4 @@
 static/* linguist-vendored
 app/static/* linguist-vendored
+*.css linguist-detectable=false
 *.py linguist-vendored=false
