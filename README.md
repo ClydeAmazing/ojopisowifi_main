@@ -16,12 +16,13 @@ Download full image for Raspberry Pi 3 and Orange Pi One on this [link](https://
 9. Proven and Tested software
 
 ### System Screenshots
-<img src="/docs/images/1.jpg">
-
 img[alt=name_for_alt] {
   width: 70%;
   border: none;
   background: none;
 }
+<img src="/docs/images/1.jpg">
+
+
 ### Satisfied Clients
 
