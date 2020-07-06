@@ -16,7 +16,7 @@ Download full image for Raspberry Pi 3 and Orange Pi One on this [link](https://
 9. Proven and Tested software
 
 ### System Screenshots
-![image](/docs/images/1.jpg width=100)
+![image](/docs/images/1.jpg | width=100)
 
 ### Satisfied Clients
 
