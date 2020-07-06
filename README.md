@@ -16,7 +16,7 @@ Download full image for Raspberry Pi 3 and Orange Pi One on this [link](https://
 9. Proven and Tested software
 
 ### System Screenshots
-![image](https://github.com/ClydeAmazing/ojopisowifi_main/blob/master/docs/images/1.jpg)
+![](https://github.com/ClydeAmazing/ojopisowifi_main/blob/master/docs/images/1.jpg | width=100)
 
 ### Satisfied Clients
 
