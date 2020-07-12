@@ -59,14 +59,8 @@ def insert_coin(pulseCount):
 			ledger.Slot_No = 1
 			ledger.save()
 
-			if rate_type == 'auto':
-				new_time = n_rate * rates.Denom
-			else:
-				new_time = rates.Minutes
-
 			q, _ = CoinQueue.objects.get_or_create(Client=client)
 			q.Total_Coins += rates.Denom
-			q.Total_Time += new_time
 			q.save()
 
 			slot.Last_Updated = timezone.now()

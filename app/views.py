@@ -12,7 +12,7 @@ from datetime import timedelta
 from getmac import getmac
 from app.opw import cc, grc
 from app import models
-import time
+import time, math
 
 local_ip = ['::1', '127.0.0.1', '10.0.0.1']
 
@@ -232,16 +232,12 @@ class Pay(View):
 
             try:
                 slot_info = models.CoinSlot.objects.get(id=slot_id)
-
             except ObjectDoesNotExist:
                 resp = api_response(400)
 
             else:
                 connected_client = slot_info.Client
-
                 settings = models.Settings.objects.get(pk=1)
-                rate_type = settings.Rate_Type
-                base_rate = settings.Base_Value
                 timeout = settings.Slot_Timeout
                 time_diff = timedelta.total_seconds(timezone.now()-slot_info.Last_Updated)
                 try:
@@ -258,13 +254,8 @@ class Pay(View):
                         ledger.Slot_No = slot_id
                         ledger.save()
 
-                        if rate_type == 'auto':
-                            new_time = base_rate * rates.Denom
-                        else:
-                            new_time = rates.Minutes
                         q, _ = models.CoinQueue.objects.get_or_create(Client=connected_client)
                         q.Total_Coins += rates.Denom
-                        q.Total_Time += new_time
                         q.save()
 
                         slot_info.Last_Updated = timezone.now()
@@ -332,7 +323,6 @@ class Browse(View):
                 coin_slot.save()
 
                 resp = api_response(200)
-                resp['extra'] = total_time + client.Time_Left
 
             except ObjectDoesNotExist:
                 resp = api_response(700)    
