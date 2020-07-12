@@ -6,8 +6,7 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from django.urls import reverse
 import subprocess
-import string, random
-import os
+import string, random, os, math
 
 class Clients(TrackingModelMixin, models.Model):
     TRACKED_FIELDS = ['Status', 'Time_Left']
@@ -213,7 +212,27 @@ class Rates(models.Model):
 class CoinQueue(models.Model):
     Client = models.CharField(max_length=17, null=True, blank=True)
     Total_Coins = models.IntegerField(null=True, blank=True, default=0)
-    Total_Time = models.DurationField(null=True, blank=True, default=timedelta())
+
+    @property
+    def Total_Time(self):
+        settings = Settings.objects.get(pk=1)
+        rate_type = settings.Rate_Type
+        base_value = settings.Base_Value
+        total_coins = self.Total_Coins
+        total_time = timedelta(0)
+
+        if rate_type == 'manual':
+            rates = Rates.objects.all().order_by('-Denom')
+            for rate in rates:
+                multiplier = math.floor(total_coins/rate.Denom)
+                if multiplier > 0:
+                    total_coins = total_coins - (rate.Denom * multiplier)
+                    total_time = total_time + (rate.Minutes * multiplier)
+        
+        if rate_type == 'auto':
+            total_time = base_value * total_coins
+        
+        return total_time
 
     class Meta:
         verbose_name = 'Coin Queue'

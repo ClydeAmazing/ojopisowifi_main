@@ -13,6 +13,10 @@ from app.opw import fprint
 from pathlib import Path
 import requests
 import time
+
+#Enable below instead if running on Orange PI One SBC
+#import OPi.GPIO as GPIO
+
 import RPi.GPIO as GPIO
 import multiprocessing
 import threading
@@ -29,7 +33,7 @@ rate_type = settings.Rate_Type
 base_rate = settings.Base_Value
 timeout = settings.Slot_Timeout
 
-#Enable below if running in Orange PI One SBC
+#Enable below if running on Orange PI One SBC
 #GPIO.setboard(GPIO.PCPCPLUS)
 
 GPIO.setmode(GPIO.BOARD)
@@ -55,14 +59,8 @@ def insert_coin(pulseCount):
 			ledger.Slot_No = 1
 			ledger.save()
 
-			if rate_type == 'auto':
-				new_time = n_rate * rates.Denom
-			else:
-				new_time = rates.Minutes
-
 			q, _ = CoinQueue.objects.get_or_create(Client=client)
 			q.Total_Coins += rates.Denom
-			q.Total_Time += new_time
 			q.save()
 
 			slot.Last_Updated = timezone.now()

@@ -1,6 +1,12 @@
+
+.bg-gray {
+    background-color: #585757;
+}
+
 .card-captive {
     max-width: 25rem;
-    background-image: url('/static/build/images/bg.png');
+    /*background-image: url('/static/build/images/bg.png');*/
+    background-color: #e5ffe9;
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
@@ -15,7 +21,57 @@
     transition: none !important;
 }
 
-.btn-rounded{
-    border-radius: 20px; !important
+.btn-done{
+    /*cursor: pointer;*/
 }
 
+.btn-insert-coin{
+    padding: 0;
+    cursor: pointer;
+}
+
+.btn-rounded{
+    border-radius: 20px !important;
+}
+
+.btn-normal {
+    text-transform: none !important;
+}
+
+.blinking {
+    -webkit-animation:blinkingText 0.8s infinite;
+    -moz-animation:blinkingText 0.8s infinite;
+    -o-animation:blinkingText 0.8s infinite;
+    animation:blinkingText 0.8s infinite;
+}
+
+@-webkit-keyframes blinkingText{50%{color: transparent}}
+@-moz-keyframes blinkingText{50%{color: transparent}}
+@-o-keyframes blinkingText{50%{color: transparent}}
+@keyframes blinkingText{50%{color: transparent}}
+
+.loader {
+  position: relative;
+  text-align: center;
+  margin: 15px auto 35px auto;
+  z-index: 9999;
+  display: block;
+  width: 80px;
+  height: 80px;
+  border: 10px solid rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+  border-top-color: #000;
+  animation: spin 1s ease-in-out infinite;
+  -webkit-animation: spin 1s ease-in-out infinite;
+}
+@keyframes spin {
+  to {
+    -webkit-transform: rotate(360deg);
+  }
+}
+@-webkit-keyframes spin {
+  to {
+    -webkit-transform: rotate(360deg);
+  }
+}
+    
