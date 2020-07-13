@@ -198,7 +198,7 @@ class CoinSlot(models.Model):
 class Rates(models.Model):
     Edit = "Edit"
     Denom = models.IntegerField(verbose_name='Denomination', help_text="Coin denomination corresponding to specified coinslot pulse.")
-    Pulse = models.IntegerField(help_text="Coinslot pulse count. Don't change this if you dont know what you're doing")
+    Pulse = models.IntegerField(blank=True, null=True, help_text="Coinslot pulse count corresponding to coin denomination. Leave it blank for promotional rates.")
     Minutes = models.DurationField(verbose_name='Duration', help_text='Internet access duration in hh:mm:ss format')
 
     class Meta:
