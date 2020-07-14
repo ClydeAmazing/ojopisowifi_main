@@ -1,5 +1,5 @@
 # OJO PISOWIFI
-Simple, Easy to use full-pledged Wifi Vending Solution
+Simple, Easy to use full-fledged Wifi Vending Solution
 
 Download full image for Raspberry Pi 3 and Orange Pi One on this [link](https://drive.google.com/drive/folders/15UboJqOuVFNEyvm6qzDSouGNQfhIzHfZ?usp=sharing). 
 
