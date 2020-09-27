@@ -103,6 +103,7 @@ $(function(){
                 } else {
                     // $("#voucher-modal").modal('toggle');
                     window.location.href='/app/portal'
+                    // window.location.href = "{% url 'app:portal' %}"
                 }
             }
 

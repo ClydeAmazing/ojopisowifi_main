@@ -25,15 +25,11 @@
                             <div class="inner" style="margin: 0 1.5rem 1.5rem 1.5rem;">
                                 <div class="row">
                                     <div class="col text-center">
-                                        {% for request in requests %}
-                                            {{ request }}
-                                        {% endfor %}
                                         <strong class="text-info">{{ hotspot }}</strong>
                                     </div>
                                 </div>
                                 {% csrf_token %}
-                                <input type="hidden" name="input_ip" value="{{ ip }}">
-                                <input type="hidden" name="input_mac" value="{{ mac }}">
+
                                 <div class="row">
                                     <div class="col text-center">
                                         Status: <strong><span id="conn_stat" class="{% if status == 'Disconnected' %} text-danger {% elif status == 'Connected' %} text-success {% else %} text-warning {% endif %}">{{ status }}</span></strong>
@@ -42,208 +38,197 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                <script>
-                                    var slot_timeout = {{ slot_timeout }};
-                                    var seconds_left = {{ time_left }};
-                                    var conn_status = '{{ status }}';
-                                    var total_coins = {{ total_coins }};
-                                    var voucher_flg = {{ voucher_flg }};
-                                    var pause_resume_flg = {{ pause_resume_flg }};
 
-                                    {% if redir_url %}
-                                        var redir_url = '{{ redir_url }}';
-                                    {% else %}
-                                        var redir_url = null;
-                                    {% endif %}
-                                </script>
+                                {% if not whitelisted %}
+                                    <div id="divInsertCoin" {% if time_left > 0 %} class="collapse" {% endif %}>
+                                        <div class="row">
+                                            <div class="col animated fadeIn text-center">
+                                                <button type="button" id="btn-insert-coin" class="animated btn btn-insert-coin mx-auto" style="border: none; background: none;">
+                                                    <img src="/static/build/images/insert_coin.png" width="120" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col text-center mt-2">
+                                                <button type="button" id="btn-done" class="animated fadeIn btn btn-md btn-rounded {% if total_coins == 0 %} btn-outline-default {% else %} btn-outline-success {% endif %}  waves-effect btn-done" {% if total_coins == 0 %} disabled {% endif %}>
+                                                    {% if total_coins == 0 %} 
+                                                        No Coins Inserted
+                                                    {% else %}
+                                                        <span class="fas fa-paper-plane"></span>
+                                                        <b>Surf the Net!</b>
+                                                        <span class="badge badge-pill badge-warning ml-1 p-1"><strong>P {{ total_coins }}</strong></span>
+                                                    {% endif %} 
+                                                </button>
+                                            </div>
+                                        </div>
+                                        {% if voucher_flg == 1 %}
+                                            {% if total_coins > 0 %}
+                                            <div class="row" id="vcode"> 
+                                                <div class="col text-center">  
+                                                    <button type="button" class="animated fadeIn btn btn-md btn-rounded btn-warning" data-toggle="modal" data-target="#voucher-modal">    
+                                                        <span class="fas fa-barcode"></span>
+                                                        Get Voucher Code
+                                                    </button>      
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            {% if vouchers %}
+                                            <div class="row">
+                                                <div class="col text-center">
+                                                    <small><a href='#' data-toggle="modal" data-target="#voucher-list-modal">My Voucher Codes ({{ vouchers|length }})</a></small>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            <div class="row">
+                                                <div class="col text-center">
+                                                    <small><a href='#' data-toggle="modal" data-target="#enter-voucher-modal">Enter Voucher Code</a></small>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    </div>
 
-                                <div id="divInsertCoin" {% if time_left > 0 %} class="collapse" {% endif %}>
-                                    <div class="row">
-                                        <div class="col animated fadeIn text-center">
-                                            <!-- <input type="image" class="d-block mx-auto btn-insert-coin" src="/static/build/images/insert_coin.jpg" style="width: 120px; cursor: pointer;"> -->
-                                            <button type="button" id="btn-insert-coin" class="animated btn btn-insert-coin mx-auto" style="border: none; background: none;">
-                                                <img src="/static/build/images/insert_coin.png" width="120" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col text-center mt-2">
-                                            <button type="button" id="btn-done" class="animated fadeIn btn btn-md btn-rounded {% if total_coins == 0 %} btn-outline-default {% else %} btn-outline-success {% endif %}  waves-effect btn-done" {% if total_coins == 0 %} disabled {% endif %}>
-                                                {% if total_coins == 0 %} 
-                                                    No Coins Inserted
-                                                {% else %}
-                                                    <span class="fas fa-paper-plane"></span>
-                                                    <b>Surf the Net!</b>
-                                                    <span class="badge badge-pill badge-warning ml-1 p-1"><strong>P {{ total_coins }}</strong></span>
-                                                {% endif %} 
-                                            </button>
-                                        </div>
-                                    </div>
                                     {% if voucher_flg == 1 %}
-                                        {% if total_coins > 0 %}
-                                        <div class="row" id="vcode"> 
-                                            <div class="col text-center">  
-                                                <button type="button" class="animated fadeIn btn btn-md btn-rounded btn-warning" data-toggle="modal" data-target="#voucher-modal">    
-                                                    <span class="fas fa-barcode"></span>
-                                                    Get Voucher Code
-                                                </button>      
+
+                                    <!-- Enter Voucher Modal -->
+                                    <div class="modal fade" id="enter-voucher-modal">
+                                        <div class="modal-dialog modal-sm">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h6 class="modal-title">Enter Voucher Code</h6>
+                                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="input-group mb-2">
+                                                        <input type="text" class="form-control text-center" name="input_voucher_redeem">
+                                                        <div class="input-group-append">
+                                                            <button class="input-group-text bg-success text-white" id="btn_voucher_redeem">Redeem</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
+                                        </div>
+                                    </div>
+                                    <!-- End Enter Voucher Modal -->
+
+                                    <!-- Voucher Modal -->
+                                    <div class="modal fade" id="voucher-modal" data-backdrop="static" data-keyboard="false">
+                                        <div class="modal-dialog modal-sm">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h6 class="modal-title">Voucher Code</h6>
+                                                    <button type="button" class="close" id="btn_voucher_close" data-dismiss="modal">&times;</button>
+                                                </div>
+                                                <div class="modal-body text-center">
+                                                    <!-- <form class="form-inline"> -->
+                                                        Amount inserted: <strong class="lbl_coins_inserted">P {{ total_coins }}</strong>
+                                                    <div class="input-group mb-2">
+                                                        <input type="text" class="form-control text-center" name="input_voucher" id="input_voucher" readonly>
+                                                        <div class="input-group-append">
+                                                            <button class="input-group-text fa fa-copy" id="btn_copy"></button>
+                                                        </div>
+                                                    </div>
+                                                    <button class="btn btn-success btn-sm" id="gen_voucher">Generate Code</button>
+                                                    <!-- <button class="btn btn-default btn-sm" id="voucher_done" disabled>Done</button> -->
+                                                    <!-- </form> -->
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <small class="text-muted">Print screen this page to save a backup of your voucher code.</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- End Voucher Modal -->
+                                  
+                                    <!-- Voucher List Modal -->
+                                    <div class="modal fade" id="voucher-list-modal">
+                                        <div class="modal-dialog modal-sm">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h6 class="modal-title">My Voucher Codes</h6>
+                                                    <button type="button" class="close" id="btn_voucher_close" data-dismiss="modal">&times;</button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <table class="table table-condensed text-center">
+                                                        <thead>
+                                                            <tr><th>Code</th><th>Time</th><th></th></tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {% if vouchers %}
+                                                                {% for voucher in vouchers %}
+                                                                <tr>
+                                                                    <td class="align-middle"><strong>{{ voucher.Voucher_code }}</strong></td>
+                                                                    <td class="align-middle"><strong>{{ voucher.Voucher_time_value|duration }}</strong></td>
+                                                                    <td class="align-middle"><button class="btn btn-sm btn-success btn_redeem_voucher" data-voucher="{{ voucher.Voucher_code }}"><strong> Redeem</strong></button></td>
+                                                                </tr>
+                                                                {% endfor %}
+                                                            {% endif %}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- End Voucher List Modal -->
+                                    {% endif %}
+                                    
+                                    {% if time_left > 0 %}
+                                    <div class="row justify-content-sm-center mt-3 pt-2" style="background: #e4e6e6;">
+                                        <div class="col-sm-6">
+                                            <button class="mb-2 animated fadeIn btn btn-block btn-md btn-rounded btn-success btn-extend" data-toggle="collapse" data-target="#divInsertCoin"><span class="fas fa-clock"></span>  Extend</button>
+                                        </div>
+                                        {% if pause_resume_flg == 1%}
+                                        <div class="col-sm-6">
+                                            <button type="button" id="btn-pause-resume" class="mb-2 animated fadeIn btn btn-block btn-md btn-rounded {% if status == 'Paused' %}btn-info{% elif status == 'Connected' %}btn-danger{% endif %} btn-pause-resume" data-action="{% if status == 'Paused' %}resume{% elif status == 'Connected' %}pause{% endif %}">
+                                                <span class="fas {% if status == 'Paused' %}fa-play{% elif status == 'Connected' %}fa-pause{% endif %}"></span>{% if status == 'Paused' %} Resume{% elif status == 'Connected' %} Pause{% endif %}
+                                            </button>
                                         </div>
                                         {% endif %}
-                                        {% if vouchers %}
-                                        <div class="row">
-                                            <div class="col text-center">
-                                                <small><a href='#' data-toggle="modal" data-target="#voucher-list-modal">My Voucher Codes ({{ vouchers|length }})</a></small>
-                                            </div>
-                                        </div>
-                                        {% endif %}
-                                        <div class="row">
-                                            <div class="col text-center">
-                                                <small><a href='#' data-toggle="modal" data-target="#enter-voucher-modal">Enter Voucher Code</a></small>
-                                            </div>
-                                        </div>
-                                    {% endif %}
-                                </div>
-
-                                {% if voucher_flg == 1 %}
-
-                                <!-- Enter Voucher Modal -->
-                                <div class="modal fade" id="enter-voucher-modal">
-                                    <div class="modal-dialog modal-sm">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h6 class="modal-title">Enter Voucher Code</h6>
-                                                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <div class="input-group mb-2">
-                                                    <input type="text" class="form-control text-center" name="input_voucher_redeem">
-                                                    <div class="input-group-append">
-                                                        <button class="input-group-text bg-success text-white" id="btn_voucher_redeem">Redeem</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- End Enter Voucher Modal -->
-
-                                <!-- Voucher Modal -->
-                                <div class="modal fade" id="voucher-modal" data-backdrop="static" data-keyboard="false">
-                                    <div class="modal-dialog modal-sm">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h6 class="modal-title">Voucher Code</h6>
-                                                <button type="button" class="close" id="btn_voucher_close" data-dismiss="modal">&times;</button>
-                                            </div>
-                                            <div class="modal-body text-center">
-                                                <!-- <form class="form-inline"> -->
-                                                    Amount inserted: <strong class="lbl_coins_inserted">P {{ total_coins }}</strong>
-                                                <div class="input-group mb-2">
-                                                    <input type="text" class="form-control text-center" name="input_voucher" id="input_voucher" readonly>
-                                                    <div class="input-group-append">
-                                                        <button class="input-group-text fa fa-copy" id="btn_copy"></button>
-                                                    </div>
-                                                </div>
-                                                <button class="btn btn-success btn-sm" id="gen_voucher">Generate Code</button>
-                                                <!-- <button class="btn btn-default btn-sm" id="voucher_done" disabled>Done</button> -->
-                                                <!-- </form> -->
-                                            </div>
-                                            <div class="modal-footer">
-                                                <small class="text-muted">Print screen this page to save a backup of your voucher code.</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- End Voucher Modal -->
-                              
-                                <!-- Voucher List Modal -->
-                                <div class="modal fade" id="voucher-list-modal">
-                                    <div class="modal-dialog modal-sm">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h6 class="modal-title">My Voucher Codes</h6>
-                                                <button type="button" class="close" id="btn_voucher_close" data-dismiss="modal">&times;</button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <table class="table table-condensed text-center">
-                                                    <thead>
-                                                        <tr><th>Code</th><th>Time</th><th></th></tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {% if vouchers %}
-                                                            {% for voucher in vouchers %}
-                                                            <tr>
-                                                                <td class="align-middle"><strong>{{ voucher.Voucher_code }}</strong></td>
-                                                                <td class="align-middle"><strong>{{ voucher.Voucher_time_value|duration }}</strong></td>
-                                                                <td class="align-middle"><button class="btn btn-sm btn-success btn_redeem_voucher" data-voucher="{{ voucher.Voucher_code }}"><strong> Redeem</strong></button></td>
-                                                            </tr>
-                                                            {% endfor %}
-                                                        {% endif %}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- End Voucher List Modal -->
-                                {% endif %}
-                                
-                                {% if time_left > 0 %}
-                                <div class="row justify-content-sm-center mt-3 pt-2" style="background: #e4e6e6;">
-                                    <div class="col-sm-6">
-                                        <button class="mb-2 animated fadeIn btn btn-block btn-md btn-rounded btn-success btn-extend" data-toggle="collapse" data-target="#divInsertCoin"><span class="fas fa-clock"></span>  Extend</button>
-                                    </div>
-                                    {% if pause_resume_flg == 1%}
-                                    <div class="col-sm-6">
-                                        <button type="button" id="btn-pause-resume" class="mb-2 animated fadeIn btn btn-block btn-md btn-rounded {% if status == 'Paused' %}btn-info{% elif status == 'Connected' %}btn-danger{% endif %} btn-pause-resume" data-action="{% if status == 'Paused' %}resume{% elif status == 'Connected' %}pause{% endif %}">
-                                            <span class="fas {% if status == 'Paused' %}fa-play{% elif status == 'Connected' %}fa-pause{% endif %}"></span>{% if status == 'Paused' %} Resume{% elif status == 'Connected' %} Pause{% endif %}
-                                        </button>
                                     </div>
                                     {% endif %}
-                                </div>
-                                {% endif %}
-                                <div class="row ">
-                                    <div class="col text-center">
-                                        <button type="button" class="btn btn-primary btn-normal btn-sm" data-toggle="modal" data-target="#rates-modal"> View Rates </button>
-                                        <!-- Rates Modal -->
-                                        <div class="modal fade" id="rates-modal">
-                                            <div class="modal-dialog modal-sm">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h6 class="modal-title">Wifi Rates</h6>
-                                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <table class="table table-condensed">
-                                                            <thead>
-                                                                <tr><th>Coin</th><th>Time Value</th></tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                {% if rate_type == 'auto' %}
-                                                                    {% for rate in rates %}
-                                                                        <tr>
-                                                                            <td><strong>P {{ rate.Denom }}</strong></td>
-                                                                            <td><strong>{{ rate.auto_rate|duration }}</strong></td>
-                                                                        </tr>
-                                                                    {% endfor %}
-                                                                {% else %}
-                                                                    {% for rate in rates %}
-                                                                        <tr>
-                                                                            <td><strong>P {{ rate.Denom }}</strong></td>
-                                                                            <td><strong>{{ rate.Minutes|duration }}</strong></td>
-                                                                        </tr>
-                                                                    {% endfor %}
-                                                                {% endif %}
-                                                            </tbody>
-                                                        </table>
+
+                                    <div class="row ">
+                                        <div class="col text-center">
+                                            <button type="button" class="btn btn-primary btn-normal btn-sm" data-toggle="modal" data-target="#rates-modal"> View Rates </button>
+                                            <!-- Rates Modal -->
+                                            <div class="modal fade" id="rates-modal">
+                                                <div class="modal-dialog modal-sm">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h6 class="modal-title">Wifi Rates</h6>
+                                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <table class="table table-condensed">
+                                                                <thead>
+                                                                    <tr><th>Coin</th><th>Time Value</th></tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {% if rate_type == 'auto' %}
+                                                                        {% for rate in rates %}
+                                                                            <tr>
+                                                                                <td><strong>P {{ rate.Denom }}</strong></td>
+                                                                                <td><strong>{{ rate.auto_rate|duration }}</strong></td>
+                                                                            </tr>
+                                                                        {% endfor %}
+                                                                    {% else %}
+                                                                        {% for rate in rates %}
+                                                                            <tr>
+                                                                                <td><strong>P {{ rate.Denom }}</strong></td>
+                                                                                <td><strong>{{ rate.Minutes|duration }}</strong></td>
+                                                                            </tr>
+                                                                        {% endfor %}
+                                                                    {% endif %}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
+                                            <!-- End Rates Modal -->
                                         </div>
-                                        <!-- End Rates Modal -->
                                     </div>
-                                </div>
+
+                                {% endif %}
                             </div>
                         </div>
                         <div class="card-footer">
@@ -282,6 +267,32 @@
     <!-- Bootstrap JS -->
     <script src="/static/vendors/bootstrap-4.1.1/dist/js/bootstrap.bundle.min.js"></script>
 
+    <script src="/static/build/js/timer.js"></script>
+
+    <script>
+        var slot_timeout = {{ slot_timeout }};
+        var seconds_left = {{ time_left }};
+        var conn_status = '{{ status }}';
+        var total_coins = {{ total_coins }};
+        var voucher_flg = {{ voucher_flg }};
+        var pause_resume_flg = {{ pause_resume_flg }};
+        var ip_add = '{{ ip }}';
+        var mac_add = '{{ mac }}';
+        var token = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        var page_url = "{% url 'app:portal' %}";
+        {% if whitelisted %}
+        var whitelisted = true;
+        {% else %}
+        var whitelisted = false;
+        {% endif %}
+        {% if redir_url %}
+        var redir_url = '{{ redir_url }}';
+        {% else %}
+        var redir_url = null;
+        {% endif %}
+        
+    </script>
+
     <!--Custom JS-->
     <script src="/static/build/js/app.js"></script>
 
@@ -290,4 +301,65 @@
 
     <!--Material Design Bootstrap JS-->
     <script type="text/javascript" src="/static/vendors/mdb-free_4.5.12/js/mdb.min.js"></script>
+
+    {% if push_notif and not whitelisted %}
+    <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async=""></script>
+    <script>
+        window.OneSignal = window.OneSignal || [];
+        OneSignal.push(function() {
+            OneSignal.init({
+                appId: "{{ push_notif.app_id }}",
+            });
+        });
+
+        {% if appNotification_ID %}
+        var notifId = "{{ appNotification_ID}}"
+        {% else %}
+        var notifId = null
+        {% endif %}
+
+        function update_notif_id(userId){
+            const data = {action: 'update_notif_id', notifId: userId, mac: mac_add};
+            fetch('', {
+              method: 'POST',
+              mode: 'same-origin',
+              body: JSON.stringify(data),
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': "application/json",
+                'X-CSRFToken': token
+              }
+            })
+            .then(response => response.text()
+            )
+            .then(data => {
+              console.log('Success:', data);
+            })
+            .catch((error) => {
+              console.error('Error:', error);
+            });
+        }
+
+        OneSignal.push(function() {
+            OneSignal.getUserId(function(userId) {
+                if (!notifId || notifId !== userId && userId){
+                    update_notif_id(userId);
+                    notifId = userId
+                }
+            });
+        });
+
+        OneSignal.push(function() {
+            OneSignal.on('subscriptionChange', function (isSubscribed) {
+                OneSignal.push(function() {
+                    OneSignal.getUserId(function(userId) {
+
+                        update_notif_id(userId);
+                        notifId = userId
+                    });
+                });
+            });
+        });
+    </script>
+    {% endif %}
 {% endblock javascripts %}

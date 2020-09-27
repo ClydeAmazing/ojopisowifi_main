@@ -1,16 +1,14 @@
 $(function(){
-    var token = $("input[name=csrfmiddlewaretoken]").val();
-    var ip_add = $("input[name=input_ip]").val();
-    var mac_add = $("input[name=input_mac]").val();
-
     var btn_done = document.getElementById("btn-done");
 
-    if (btn_done.addEventListener){
-        btn_done.addEventListener("click", Browse);
-    }  else if (btn_done.attachEvent){
-        btn_done.attachEvent("onclick", Browse);
-    }   else {
-        btn_done.onclick = Browse;
+    if (btn_done){
+        if (btn_done.addEventListener){
+            btn_done.addEventListener("click", Browse);
+        }  else if (btn_done.attachEvent){
+            btn_done.attachEvent("onclick", Browse);
+        }   else {
+            btn_done.onclick = Browse;
+        }
     }
 
     function Browse(){
@@ -29,14 +27,13 @@ $(function(){
             },
             success: function(response){
                 if (response['code'] == 200){
-                    console.log(response['extra'])
                     clearInterval(q);
                     show_notification('success', 'fa fas-coins','<strong>P' + total_coins + '</strong> is credited successfully. Enjoy Surfing!')
                     setTimeout(function(){
                         if (redir_url){
-                            window.location.href = redir_url
+                            window.location.href = redir_url;
                         }else{
-                            window.location.href = '/app/portal'
+                            window.location.href = page_url;
                         } 
                     }, 2000)
 
@@ -50,12 +47,14 @@ $(function(){
 
     var btn_insert_coin = document.getElementById("btn-insert-coin");
 
-    if (btn_insert_coin.addEventListener){
-        btn_insert_coin.addEventListener("click", InsertCoin);
-    }else if (btn_insert_coin.attachEvent){
-        btn_insert_coin.attachEvent("onclick", InsertCoin);
-    }else {
-        btn_insert_coin.onclick = InsertCoin;
+    if (btn_insert_coin){
+        if (btn_insert_coin.addEventListener){
+            btn_insert_coin.addEventListener("click", InsertCoin);
+        }else if (btn_insert_coin.attachEvent){
+            btn_insert_coin.attachEvent("onclick", InsertCoin);
+        }else {
+            btn_insert_coin.onclick = InsertCoin;
+        }
     }
 
     function InsertCoin(){
@@ -76,7 +75,7 @@ $(function(){
 
     var btn_gen_voucher = document.getElementById("gen_voucher");
 
-    if (btn_gen_voucher !== null){
+    if (btn_gen_voucher){
         if (btn_gen_voucher.addEventListener){
             btn_gen_voucher.addEventListener("click", GenerateVoucherCode);
         } else if (btn_gen_voucher.attachEvent){
@@ -97,12 +96,10 @@ $(function(){
                 if (response['status'] == 'OK'){
                     $('input[name=input_voucher]').val(response['voucher_code'])
                     btn_gen_voucher.innerText = 'Done';
-                    // CopyCode();
                     var btn_voucher_close = document.getElementById("btn_voucher_close");
                     btn_voucher_close.removeAttribute("data-dismiss");
                 } else {
-                    // $("#voucher-modal").modal('toggle');
-                    window.location.href='/app/portal'
+                    window.location.href = page_url;
                 }
             }
 
@@ -111,7 +108,7 @@ $(function(){
 
     var btn_copy = document.getElementById('btn_copy');
 
-    if (btn_copy != null){
+    if (btn_copy){
         if (btn_copy.addEventListener){
             btn_copy.addEventListener("click", CopyCode);
         } else if (btn_copy.attachEvent){
@@ -132,7 +129,7 @@ $(function(){
 
     var btn_voucher_close = document.getElementById("btn_voucher_close");
 
-    if (btn_voucher_close != null){
+    if (btn_voucher_close){
         if (btn_voucher_close.addEventListener){
             btn_voucher_close.addEventListener("click", CloseVoucher);
         } else if (btn_voucher_close.attachEvent){
@@ -145,7 +142,7 @@ $(function(){
     function CloseVoucher(){
         if (btn_voucher_close.getAttribute('data-dismiss') !== 'modal'){
             clearInterval(q);
-            window.location.href='/app/portal';
+            window.location.href = page_url;
         }
     }
 
@@ -187,7 +184,7 @@ $(function(){
                 }
 
                 setTimeout(function(){
-                    window.location.href='/app/portal'
+                    window.location.href = page_url;
                 }, 2000)
             }
         })
@@ -232,25 +229,14 @@ $(function(){
                if (response['code'] = 200){
                     x = response['description']
                     if (x == 'Paused'){
-                        html = "<span class='fas fa-play'></span> Resume"
-                        $('.btn-pause-resume').removeClass('btn-danger').addClass('btn-info')
-                        $('.btn-pause-resume').attr('data-action', 'resume')
-                        $('.btn-pause-resume').html(html)
-                        $('#conn_stat').removeClass('text-success').addClass('text-warning').text('Paused')
-
-                        show_notification('error', 'fas fa-exclamation-triangle','<strong>Internet connection paused.</strong> Resume when you\'re ready.')
-                        clearInterval(timer);
-
+                        myTimer.pause()
                     }else if (x == 'Connected'){
-                        html = "<span class='fas fa-pause'></span> Pause"
-                        $('.btn-pause-resume').removeClass('btn-info').addClass('btn-danger')
-                        $('.btn-pause-resume').attr('data-action', 'pause')
-                        $('.btn-pause-resume').html(html)
-                        $('#conn_stat').removeClass('text-warning').addClass('text-success').text('Connected')
-                        
-                        show_notification('success', 'fas fa-wifi','<strong>Internet connection resumed.</strong> Enjoy browsing the internet.')
-                        start_timer();
-                    }
+                        if (conn_status === 'Paused'){
+                            myTimer.start(seconds_left)
+                        }else{
+                            myTimer.start()
+                        }
+                    }   
                }else{
                     show_notification('error', 'fas fa-exclamation-triangle', response['description'])
                }
@@ -277,9 +263,6 @@ $(function(){
             show_notification('info', 'fas fa-coins','<strong>Insert coin(s).</strong>');
             $('.slot_countdown').css('width', '100%');
             var connection_status = $('#conn_stat').html()
-            var token = $('input[name=csrfmiddlewaretoken]').val();
-            var ip_add = $('input[name=input_ip]').val();
-            var mac_add = $('input[name=input_mac]').val();
             var data = {
                 'csrfmiddlewaretoken': token,
                 'ip': ip_add,
@@ -390,45 +373,60 @@ $(function(){
         new PNotify(options);
     }
 
-    //Timer Setup
-    var time_left = new Date(null);
-    time_left.setSeconds(seconds_left);
-    var day_time_left = time_left.getTime();
-
     //Set initial time left
-    time = time_formatter(day_time_left)
-    $('.time_holder').html(time)
+    var init_time = time_formatter(seconds_left * 1000)
+    $('.time_holder').html(init_time)
+
+    if (conn_status === 'Paused'){
+        var init_status = 'paused';
+    }else{
+        var init_status = null;
+    }
+
+    var myTimer = new Timer({
+        tick    : 1,
+        ontick  : function(s) {
+            var time = time_formatter(s)
+            $('.time_holder').html(time)
+        },
+        onstart : function() {
+            if (init_status === 'paused'){
+                html = "<span class='fas fa-pause'></span> Pause"
+                $('.btn-pause-resume').removeClass('btn-info').addClass('btn-danger')
+                $('.btn-pause-resume').attr('data-action', 'pause')
+                $('.btn-pause-resume').html(html)
+                $('#conn_stat').removeClass('text-warning').addClass('text-success').text('Connected')            
+                show_notification('success', 'fas fa-wifi','<strong>Internet connection resumed.</strong> Enjoy browsing the internet.')
+            }
+            init_status = 'started';
+        },
+        onpause : function() {
+            html = "<span class='fas fa-play'></span> Resume"
+            $('.btn-pause-resume').removeClass('btn-danger').addClass('btn-info')
+            $('.btn-pause-resume').attr('data-action', 'resume')
+            $('.btn-pause-resume').html(html)
+            $('#conn_stat').removeClass('text-success').addClass('text-warning').text('Paused')
+            show_notification('error', 'fas fa-exclamation-triangle','<strong>Internet connection paused.</strong> Resume when you\'re ready.')
+            init_status = 'paused';
+        },
+        onend   : function() {
+            timeout = '<span class = "text-danger"><strong>TIMEOUT</strong></span>'
+            $('#conn_stat').html('Disconnected').addClass('text-danger')
+            $('.con_status_holder').html(timeout)
+            $('.btn-extend').text('Insert Coin')
+            $('.btn-pause-resume').attr('disabled', 'disabled')
+
+            show_notification('error', 'fas fa-exclamation-triangle', '<strong>Connection timeout.</strong> Insert coin(s) to continue browsing.')
+            setTimeout(function(){
+                window.location.href='/app/portal'
+            }, 3000)
+        }
+    });
 
     //Countdown if not paused
     if (conn_status != 'Paused' && seconds_left > 0){
-        start_timer();
+        myTimer.start(seconds_left)
     }
-
-    var timer;
-    function start_timer(){
-        var init_time = new Date();
-
-         timer = setInterval(function(){
-            var elapsed = new Date() - init_time;
-            var distance = day_time_left - elapsed;
-
-            var time = time_formatter(distance)
-            $('.time_holder').html(time)
-            if (distance < 0){
-                clearInterval(timer);
-                timeout = '<span class = "text-danger"><strong>TIMEOUT</strong></span>'
-                $('#conn_stat').html('Disconnected').addClass('text-danger')
-                $('.con_status_holder').html(timeout)
-                $('.btn-extend').text('Insert Coin')
-                $('.btn-pause-resume').attr('disabled', 'disabled')
-
-                show_notification('error', 'fas fa-exclamation-triangle', '<strong>Connection timeout.</strong> Insert coin(s) to continue browsing.')
-                setTimeout(function(){
-                    window.location.href='/app/portal'
-                }, 3000)
-            }
-        }, 1000)
-    };
 
     //Time formatter
     function time_formatter(mins){

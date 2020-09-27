@@ -16,8 +16,6 @@ urlpatterns = [
     path('gen_rc', GenerateRC.as_view()),
     path('activate', ActivateDevice.as_view()),
     path('sweep', Sweep.as_view()),
-   # path('relaystat', RelayStat.as_view()),
-   # path('settings', Settings.as_view()),
     path('voucher', GenerateVoucher.as_view()),
     path('redeem', Redeem.as_view()),
    # path('eload', EloadPortal.as_view())

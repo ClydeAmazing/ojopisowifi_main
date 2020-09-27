@@ -11,10 +11,9 @@ def client_check(request):
 
 
 class ClientsAdmin(admin.ModelAdmin):
-    list_display = ('IP_Address', 'MAC_Address', 'Device_Name', 'Status', 'Connected_On', 'remaining_time')
-    readonly_fields = ('Connected_On', 'Expire_On', 'Last_Updated')
-    list_filter = ('Status', )
-    actions = ['whitelist_client', 'disconnect_client']
+    list_display = ('IP_Address', 'MAC_Address', 'Device_Name', 'Connection_Status', 'Time_Left', 'running_time')
+    readonly_fields = ('IP_Address', 'MAC_Address', 'Expire_On', 'Notification_ID', 'Notified_Flag', 'Date_Created')
+    actions = ['Connect', 'Disconnect', 'Pause', 'Whitelist']
 
     def changelist_view(self, request, extra_context=None):
         extra_context = {'title': 'Clients List'}
@@ -23,18 +22,35 @@ class ClientsAdmin(admin.ModelAdmin):
     def message_user(self, *args, **kwargs):
         pass
 
-    def disconnect_client(self, request, queryset):
+    def Connect(self, request, queryset):
         for obj in queryset:
+            res = obj.Connect()
             device_name = obj.MAC_Address if not obj.Device_Name else obj.Device_Name
-            if obj.Status == 'Connected':
-                obj.Status = 'Disconnected'
-                obj.save()
+            if res:
+                messages.add_message(request, messages.SUCCESS, 'Device {} is now connected.'. format(device_name))
+            else:
+                messages.add_message(request, messages.WARNING, 'Unable to connect device {}'. format(device_name))
+
+    def Disconnect(self, request, queryset):
+        for obj in queryset:
+            res = obj.Disconnect()
+            device_name = obj.MAC_Address if not obj.Device_Name else obj.Device_Name
+            if res:
                 messages.add_message(request, messages.SUCCESS, 'Device {} is now disconnected.'. format(device_name))
             else:
-                messages.add_message(request, messages.INFO, 'Device {} is already disconnected.'. format(device_name))
+                messages.add_message(request, messages.WARNING, 'Device {} is already disconnected/paused.'. format(device_name))
+
+    def Pause(self, request, queryset):
+        for obj in queryset:
+            res = obj.Pause()
+            device_name = obj.MAC_Address if not obj.Device_Name else obj.Device_Name
+            if res:
+                messages.add_message(request, messages.SUCCESS, 'Device {} is now paused.'. format(device_name))
+            else:
+                messages.add_message(request, messages.WARNING, 'Device {} is already paused/disconnected.'. format(device_name))
 
 
-    def whitelist_client(self, request, queryset):      
+    def Whitelist(self, request, queryset):      
         for obj in queryset:
             device, created = models.Whitelist.objects.get_or_create(MAC_Address=obj.MAC_Address, defaults={'Device_Name': obj.Device_Name})
             device_name = obj.MAC_Address if not obj.Device_Name else obj.Device_Name
@@ -45,8 +61,8 @@ class ClientsAdmin(admin.ModelAdmin):
                 messages.add_message(request, messages.WARNING, 'Device {} was already added on the whitelisted devices'.format(device_name))
 
 
-    whitelist_client.short_description = "Add selected devices to whitelisted clients"
-    disconnect_client.short_description = "Disconnect selected devices"
+    # whitelist_client.short_description = "Add selected devices to whitelisted clients"
+    # disconnect_client.short_description = "Disconnect selected devices"
 
 class WhitelistAdmin(admin.ModelAdmin):
     list_display = ('MAC_Address', 'Device_Name')
@@ -92,10 +108,17 @@ class SettingsAdmin(admin.ModelAdmin):
         res = client_check(request)
         return res
 
+    def message_user(self, *args): # overridden method
+        pass
+
+    def save_model(self, request, obj, form, change):
+        messages.add_message(request, messages.INFO, 'Wifi Settings updated successfully.')
+        super(SettingsAdmin, self).save_model(request, obj, form, change)
+
 
 class NetworkAdmin(admin.ModelAdmin):
-    list_display = ('id', 'Upload_Rate', 'Download_Rate')
-    list_editable = ('Upload_Rate', 'Download_Rate')
+    list_display = ('Edit', 'Upload_Rate', 'Download_Rate')
+    # list_editable = ('Upload_Rate', 'Download_Rate')
 
     def changelist_view(self, request, extra_context=None):
         extra_context = {'title': 'Global Network Settings'}
@@ -110,6 +133,13 @@ class NetworkAdmin(admin.ModelAdmin):
     def has_change_permission(self, request, *args, **kwargs):
         res = client_check(request)
         return res
+
+    def message_user(self, *args): # overridden method
+        pass
+
+    def save_model(self, request, obj, form, change):
+        messages.add_message(request, messages.INFO, 'Global Network Settings updated successfully.')
+        super(NetworkAdmin, self).save_model(request, obj, form, change)
 
 
 class CoinQueueAdmin(admin.ModelAdmin):
@@ -145,6 +175,13 @@ class DeviceAdmin(admin.ModelAdmin):
     def has_delete_permission(self, *args, **kwargs):
         return False
 
+    def message_user(self, *args): # overridden method
+        pass
+
+    def save_model(self, request, obj, form, change):
+        messages.add_message(request, messages.INFO, 'Hardware Settings updated successfully.')
+        super(DeviceAdmin, self).save_model(request, obj, form, change)
+
 class VouchersAdmin(admin.ModelAdmin):
     list_display = ('Voucher_code', 'Voucher_status', 'Voucher_client', 'Voucher_create_date_time', 'Voucher_used_date_time', 'Voucher_time_value')
     readonly_fields = ('Voucher_code', 'Voucher_used_date_time')
@@ -160,6 +197,26 @@ class VouchersAdmin(admin.ModelAdmin):
         else:
             return False
 
+class PushNotificationsAdmin(admin.ModelAdmin):
+    list_display = ('Enabled', 'notification_title', 'notification_message', 'notification_trigger_time')
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = {'title': 'Push Notifications Settings'}
+        return super(PushNotificationsAdmin, self).changelist_view(request, extra_context=extra_context)
+
+    def has_add_permission(self, *args, **kwargs):
+        return not models.PushNotifications.objects.exists()
+
+    def has_delete_permission(self, *args, **kwargs):
+        return False
+
+    def message_user(self, *args): # overridden method
+        pass
+
+    def save_model(self, request, obj, form, change):
+        messages.add_message(request, messages.INFO, 'Push Notification Settings updated successfully.')
+        super(PushNotificationsAdmin, self).save_model(request, obj, form, change)
+
 admin.site.register(models.CoinSlot, CoinSlotAdmin)
 admin.site.register(models.Clients, ClientsAdmin)
 admin.site.register(models.Whitelist, WhitelistAdmin)
@@ -170,6 +227,7 @@ admin.site.register(models.Network, NetworkAdmin)
 admin.site.register(models.Rates, RatesAdmin)
 admin.site.register(models.Device, DeviceAdmin)
 admin.site.register(models.Vouchers, VouchersAdmin)
+admin.site.register(models.PushNotifications, PushNotificationsAdmin)
 
 settings = models.Settings.objects.get(pk=1)
 admin_name = settings.Hotspot_Name
