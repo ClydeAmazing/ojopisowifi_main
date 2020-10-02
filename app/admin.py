@@ -93,6 +93,13 @@ class LedgerAdmin(admin.ModelAdmin):
 
 class SettingsAdmin(admin.ModelAdmin):
     list_display = ('Hotspot_Name', 'Hotspot_Address', 'Slot_Timeout', 'Rate_Type', 'Base_Value', 'Inactive_Timeout', 'Coinslot_Pin', 'Light_Pin')
+    readonly_fields = ('background_preview',)
+    
+    def background_preview(self, obj):
+        return obj.background_preview
+
+    background_preview.short_description = 'Background Preview'
+    background_preview.allow_tags = True
 
     def changelist_view(self, request, extra_context=None):
         extra_context = {'title': 'Wifi Settings'}

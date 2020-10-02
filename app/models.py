@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from django.contrib import messages
 from django.db import models
 from datetime import datetime, timedelta
+from django.utils.html import mark_safe
 from django.utils import timezone
 from django.urls import reverse
 import subprocess
@@ -209,6 +210,11 @@ class Settings(models.Model):
     Coinslot_Pin = models.IntegerField(verbose_name='Coinslot Pin', help_text='Please refer raspberry/orange pi GPIO.BOARD pinout.', null=True, blank=True)
     Light_Pin = models.IntegerField(verbose_name='Light Pin', help_text='Please refer raspberry/orange pi GPIO.BOARD pinout.', null=True, blank=True)
     
+    @property
+    def background_preview(self):
+        if self.BG_Image:
+            return mark_safe('<img src="{}" width="500" height="200" />'.format(self.BG_Image.url))
+        return ""
 
     def clean(self, *args, **kwargs):
         if self.Coinslot_Pin or self.Light_Pin:

@@ -1,5 +1,6 @@
 $(function(){
     var btn_done = document.getElementById("btn-done");
+    var coins_audio = document.getElementById("coins_audio");
 
     if (btn_done){
         if (btn_done.addEventListener){
@@ -306,6 +307,7 @@ $(function(){
                         $('.lbl_coins_inserted').text('P ' + total_coins);
                         msg = 'Total of <strong>P' + total_coins + '</strong> is loaded. <strong>(+' + time_formatter(total_time_val) + ')</strong>';
                         show_notification('info', 'fa fas-coins', msg);
+                        coins_audio.play();
 
                         var vcode = document.getElementById('vcode')
 
