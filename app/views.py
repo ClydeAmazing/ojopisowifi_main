@@ -169,6 +169,7 @@ class Portal(View):
         info['background'] = settings.BG_Image
         info['voucher_flg'] = settings.Vouchers_Flg
         info['pause_resume_flg'] = settings.Pause_Resume_Flg
+        info['pause_resume_enable_time'] = 0 if not settings.Disable_Pause_Time else int(timedelta.total_seconds(settings.Disable_Pause_Time))
         info['redir_url'] = settings.Redir_Url
 
         return info

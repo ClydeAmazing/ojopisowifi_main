@@ -20,7 +20,7 @@
                             <img class="img-fluid mx-auto d-block" src="/static/background/{{ background }}">
                             <div class="row">
                                 <div class="col">
-                                    <div class="progress" style="height: 6px; border-radius: 0;">
+                                    <div class="progress bg-transparent" style="height: 7px; border-radius: 0; background-color: None;">
                                       <div class="progress-bar bg-danger slot_countdown" role="progressbar" style="width: 0%" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
                                     </div>
                                 </div>
@@ -35,9 +35,9 @@
 
                                 <div class="row">
                                     <div class="col text-center">
-                                        Status: <strong><span id="conn_stat" class="{% if status == 'Disconnected' %} text-danger {% elif status == 'Connected' %} text-success {% else %} text-warning {% endif %}">{{ status }}</span></strong>
+                                        <strong><span id="conn_stat" class="{% if status == 'Disconnected' %} text-danger {% elif status == 'Connected' %} text-success {% else %} text-warning {% endif %}">{{ status }}</span></strong>
                                         {% if time_left > 0 %}
-                                        <h6 class="con_status_holder">Remaining time: <span class="time_holder text-info"></span></h6>
+                                        <h6 class="con_status_holder"><span class="time_holder text-info"></span></h6>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -52,7 +52,7 @@
                                             </div>
                                         </div>
                                         <div class="row">
-                                            <div class="col text-center mt-2">
+                                            <div class="col text-center my-2">
                                                 <button type="button" id="btn-done" class="animated fadeIn btn btn-md btn-rounded {% if total_coins == 0 %} btn-outline-default {% else %} btn-outline-success {% endif %}  waves-effect btn-done" {% if total_coins == 0 %} disabled {% endif %}>
                                                     {% if total_coins == 0 %} 
                                                         No Coins Inserted
@@ -175,7 +175,8 @@
                                     {% endif %}
                                     
                                     {% if time_left > 0 %}
-                                    <div class="row justify-content-sm-center mt-3 pt-2" style="background: #e4e6e6;">
+                                    <hr class="my-0" />
+                                    <div class="row justify-content-sm-center pt-2">
                                         <div class="col-sm-6">
                                             <button class="mb-2 animated fadeIn btn btn-block btn-md btn-rounded btn-success btn-extend" data-toggle="collapse" data-target="#divInsertCoin"><span class="fas fa-clock"></span>  Extend</button>
                                         </div>
@@ -279,6 +280,7 @@
         var total_coins = {{ total_coins }};
         var voucher_flg = {{ voucher_flg }};
         var pause_resume_flg = {{ pause_resume_flg }};
+        var pause_resume_enable_time = {{ pause_resume_enable_time }};
         var ip_add = '{{ ip }}';
         var mac_add = '{{ mac }}';
         var token = document.querySelector('[name=csrfmiddlewaretoken]').value;

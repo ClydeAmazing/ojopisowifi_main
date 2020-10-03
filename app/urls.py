@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 from django.urls import path
-from .views import * 
+from app.views import * 
 
 app_name = 'app'
 

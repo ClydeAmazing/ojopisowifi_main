@@ -61,9 +61,6 @@ class ClientsAdmin(admin.ModelAdmin):
                 messages.add_message(request, messages.WARNING, 'Device {} was already added on the whitelisted devices'.format(device_name))
 
 
-    # whitelist_client.short_description = "Add selected devices to whitelisted clients"
-    # disconnect_client.short_description = "Disconnect selected devices"
-
 class WhitelistAdmin(admin.ModelAdmin):
     list_display = ('MAC_Address', 'Device_Name')
 

@@ -1,6 +1,7 @@
 $(function(){
     var btn_done = document.getElementById("btn-done");
     var coins_audio = document.getElementById("coins_audio");
+    var secs = 0;
 
     if (btn_done){
         if (btn_done.addEventListener){
@@ -207,42 +208,48 @@ $(function(){
     function PauseResume(){
         var action = $('.btn-pause-resume').attr('data-action')
 
-        var data = {
-            'csrfmiddlewaretoken': token,
-            'ip': ip_add,
-            'mac': mac_add,
-            'action': action
-        }
+        if (action == 'pause' && secs < (pause_resume_enable_time * 1000)){
+            show_notification('warning', 'fas fa-exclamation-triangle', 'Cannot pause! You need at least ' + time_formatter(pause_resume_enable_time * 1000) + 'remaining time.')
 
-        $.ajax({
-            method: 'GET',
-            url: '/app/pause',
-            data: data,
-            error: coinslot_status_error,
-            beforeSend: function(){
-                $('#conn_stat').text('Processing..')
-                $('.btn-pause-resume').css('opacity', '0.5').attr('disabled', 'disabled')
-            },
-            complete: function(){
-                $('.btn-pause-resume').css('opacity', '1').removeAttr('disabled');
-            },
-            success: function(response){
-               if (response['code'] = 200){
-                    x = response['description']
-                    if (x == 'Paused'){
-                        myTimer.pause()
-                    }else if (x == 'Connected'){
-                        if (conn_status === 'Paused'){
-                            myTimer.start(seconds_left)
-                        }else{
-                            myTimer.start()
-                        }
-                    }   
-               }else{
-                    show_notification('error', 'fas fa-exclamation-triangle', response['description'])
-               }
+        } else {
+
+            var data = {
+                'csrfmiddlewaretoken': token,
+                'ip': ip_add,
+                'mac': mac_add,
+                'action': action
             }
-        })
+
+            $.ajax({
+                method: 'GET',
+                url: '/app/pause',
+                data: data,
+                error: coinslot_status_error,
+                beforeSend: function(){
+                    $('#conn_stat').text('Processing..')
+                    $('.btn-pause-resume').css('opacity', '0.5').attr('disabled', 'disabled')
+                },
+                complete: function(){
+                    $('.btn-pause-resume').css('opacity', '1').removeAttr('disabled');
+                },
+                success: function(response){
+                   if (response['code'] = 200){
+                        x = response['description']
+                        if (x == 'Paused'){
+                            myTimer.pause()
+                        }else if (x == 'Connected'){
+                            if (conn_status === 'Paused'){
+                                myTimer.start(seconds_left)
+                            }else{
+                                myTimer.start()
+                            }
+                        }   
+                   }else{
+                        show_notification('error', 'fas fa-exclamation-triangle', response['description'])
+                   }
+                }
+            })
+        }
     };
 
     var retry_count = 2;
@@ -388,8 +395,9 @@ $(function(){
     var myTimer = new Timer({
         tick    : 1,
         ontick  : function(s) {
-            var time = time_formatter(s)
-            $('.time_holder').html(time)
+            secs = s
+            var time = time_formatter(s);
+            $('.time_holder').html(time);
         },
         onstart : function() {
             if (init_status === 'paused'){
@@ -430,6 +438,16 @@ $(function(){
         myTimer.start(seconds_left)
     }
 
+    //Plural Function
+    function pluralize(number, hand){
+        if (number == 1){
+            return number + " " + hand + " "
+        }
+        else if (number > 1){
+            return number + " " + hand + "s "
+        } return ''
+    }
+
     //Time formatter
     function time_formatter(mins){
         var days = Math.floor(mins / (1000 * 60 * 60 * 24));
@@ -437,19 +455,11 @@ $(function(){
         var minutes = Math.floor((mins % (1000 * 60 * 60)) / (1000 * 60));
         var seconds = Math.floor((mins % (1000 * 60)) / 1000);
 
-        str_time = ''
-        if (days > 0){
-            str_time += days + "d "
-        }
-        if (hours > 0){
-            str_time += hours + "h "
-        }
-        if (minutes > 0){
-            str_time += minutes + "m "
-        }
-        if (seconds > 0){
-            str_time += seconds + "s "
-        }
+        str_time = pluralize(days, 'day')
+        str_time += pluralize(hours, 'hr')
+        str_time += pluralize(minutes, 'min')
+        str_time += pluralize(seconds, 'sec')
+        
         return str_time
     }
 
