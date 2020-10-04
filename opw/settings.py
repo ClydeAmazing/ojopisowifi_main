@@ -19,6 +19,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -88,6 +89,45 @@ AUTH_PASSWORD_VALIDATORS = [
 # CELERY_RESULT_SERIALIZER = 'json'
 # CELERY_TIMEZONE = 'Asia/Shanghai'
 
+JAZZMIN_SETTINGS = {
+    'copyright': 'OJO PISOWifi',
+    'topmenu_links': [
+        {'name': 'Control', 'url': '/app/control'},
+    ],
+    'show_ui_builder': True,
+    'order_with_respect_to': ['app',],
+    'icons': {
+        'app.clients': 'fas fa-users',
+        'app.coinqueue': 'fas fa-coins',
+        'app.coinslot': 'fas fa-donate',
+        'app.device': 'fas fa-laptop',
+        'app.ledger': 'fa fa-address-book',
+        'app.network': 'fas fa-network-wired',
+        'app.settings': 'fas fa-wifi',
+        'app.pushnotifications': 'fas fa-bell',
+        'app.rates': 'fas fa-dollar-sign',
+        'app.vouchers': 'fas fa-address-card',
+        'app.Whitelist': 'fas fa-clipboard-check', 
+    },
+}
+
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": True,
+    "footer_small_text": True,
+    "body_small_text": True,
+    "brand_small_text": True,
+    "brand_colour": "navbar-navy",
+    "accent": "accent-navy",
+    "navbar": "navbar-navy navbar-dark",
+    "no_navbar_border": True,
+    "sidebar": "sidebar-dark-danger",
+    "sidebar_nav_small_text": True,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": False,
+    "sidebar_nav_compact_style": True,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False
+}
 
 LANGUAGE_CODE = 'en-us'
 

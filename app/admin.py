@@ -1,6 +1,8 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import admin, messages
-from app import models
+from django.http import HttpResponseRedirect
+from django.urls import path
+from app import models, forms
 from app.opw import cc
 
 def client_check(request):
@@ -10,7 +12,33 @@ def client_check(request):
         return cc()
 
 
+class Singleton(admin.ModelAdmin):
+    change_form_template  = 'singleton_change_form.html'
+
+    def get_urls(self):
+        urls = super(Singleton, self).get_urls()
+        model_name = self.model._meta.model_name
+        self.model._meta.verbose_name_plural = self.model._meta.verbose_name
+        url_name_prefix = '%(app_name)s_%(model_name)s' % {
+            'app_name': self.model._meta.app_label,
+            'model_name': model_name,
+        }
+        custom_urls = [
+            path('',
+                self.admin_site.admin_view(self.change_view),
+                {'object_id': str(1)},
+                name='%s_change' % url_name_prefix),
+        ]
+        return custom_urls + urls
+
+    # def response_change(self, request, obj):
+    #     msg = '%s changed successfully' % obj
+    #     self.message_user(request, msg)
+    #     return HttpResponseRedirect("../../")
+
+
 class ClientsAdmin(admin.ModelAdmin):
+    form = forms.ClientsForm
     list_display = ('IP_Address', 'MAC_Address', 'Device_Name', 'Connection_Status', 'Time_Left', 'running_time')
     readonly_fields = ('IP_Address', 'MAC_Address', 'Expire_On', 'Notification_ID', 'Notified_Flag', 'Date_Created')
     actions = ['Connect', 'Disconnect', 'Pause', 'Whitelist']
@@ -70,13 +98,13 @@ class WhitelistAdmin(admin.ModelAdmin):
 
 
 class CoinSlotAdmin(admin.ModelAdmin):
-    list_display = ('id', 'Client', 'Last_Updated')
+    list_display = ('Edit', 'Client', 'Last_Updated')
 
-    def has_add_permission(self, *args, **kwargs):
-        return not models.CoinSlot.objects.exists()
+    # def has_add_permission(self, *args, **kwargs):
+    #     return not models.CoinSlot.objects.exists()
 
-    def has_delete_permission(self, *args, **kwargs):
-        return False
+    # def has_delete_permission(self, *args, **kwargs):
+    #     return False
 
 
 class LedgerAdmin(admin.ModelAdmin):
@@ -88,7 +116,8 @@ class LedgerAdmin(admin.ModelAdmin):
         return super(LedgerAdmin, self).changelist_view(request, extra_context=extra_context)
 
 
-class SettingsAdmin(admin.ModelAdmin):
+class SettingsAdmin(Singleton, admin.ModelAdmin):
+    form = forms.SettingsForm
     list_display = ('Hotspot_Name', 'Hotspot_Address', 'Slot_Timeout', 'Rate_Type', 'Base_Value', 'Inactive_Timeout', 'Coinslot_Pin', 'Light_Pin')
     readonly_fields = ('background_preview',)
     
@@ -120,7 +149,8 @@ class SettingsAdmin(admin.ModelAdmin):
         super(SettingsAdmin, self).save_model(request, obj, form, change)
 
 
-class NetworkAdmin(admin.ModelAdmin):
+class NetworkAdmin(Singleton, admin.ModelAdmin):
+    form = forms.NetworkForm
     list_display = ('Edit', 'Upload_Rate', 'Download_Rate')
     # list_editable = ('Upload_Rate', 'Download_Rate')
 
@@ -170,7 +200,7 @@ class RatesAdmin(admin.ModelAdmin):
         return res
 
 
-class DeviceAdmin(admin.ModelAdmin):
+class DeviceAdmin(Singleton, admin.ModelAdmin):
     list_display = ('Device_SN', 'Ethernet_MAC')
 
     def has_add_permission(self, *args, **kwargs):
@@ -201,7 +231,7 @@ class VouchersAdmin(admin.ModelAdmin):
         else:
             return False
 
-class PushNotificationsAdmin(admin.ModelAdmin):
+class PushNotificationsAdmin(Singleton, admin.ModelAdmin):
     list_display = ('Enabled', 'notification_title', 'notification_message', 'notification_trigger_time')
 
     def changelist_view(self, request, extra_context=None):
@@ -212,6 +242,9 @@ class PushNotificationsAdmin(admin.ModelAdmin):
         return not models.PushNotifications.objects.exists()
 
     def has_delete_permission(self, *args, **kwargs):
+        return False
+
+    def has_view_permission(self, *args, **kwargs):
         return False
 
     def message_user(self, *args): # overridden method

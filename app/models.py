@@ -122,6 +122,7 @@ class Ledger(models.Model):
 
 
 class CoinSlot(models.Model):
+    Edit = 'Edit'
     Client = models.CharField(max_length=17, null=True, blank=True)
     Last_Updated = models.DateTimeField()
     Slot_ID = models.CharField(max_length=10)
@@ -145,7 +146,7 @@ class Rates(models.Model):
         verbose_name_plural = "Rates"
 
     def __str__(self):
-        return 'Rates'
+        return 'Rate: ' + str(self.Denom)
 
 
 class CoinQueue(models.Model):
@@ -224,23 +225,25 @@ class Settings(models.Model):
                 raise ValidationError('Coinslot Pin should not be the same as Light Pin.')
 
     class Meta:
-        verbose_name = 'Wifi Setting'
-        verbose_name_plural = 'Wifi Settings'
+        verbose_name = 'PISO Wifi'
 
     def __str__(self):
-        return 'Details'
+        return 'PISO Wifi Settings'
 
 class Network(models.Model):
     Edit = "Edit"
+    Server_IP = models.GenericIPAddressField(protocol='IPv4', default='10.0.0.1', null=False, blank=False)
+    Netmask = models.GenericIPAddressField(protocol='IPv4', default='255.255.255.0', null=False, blank=False)
+    DNS_1 = models.GenericIPAddressField(protocol='IPv4', verbose_name='DNS', default='8.8.8.8', null=False, blank=False)
+    DNS_2 = models.GenericIPAddressField(protocol='IPv4', verbose_name='Alternate DNS', default='8.8.4.4', null=True, blank=True)
     Upload_Rate = models.IntegerField(verbose_name='Upload Bandwidth', help_text='Specify global internet upload bandwidth in Kbps. No value = unlimited bandwidth', null=True, blank=True )
     Download_Rate = models.IntegerField(verbose_name='Download Bandwidth', help_text='Specify global internet download bandwidth in Kbps. No value = unlimited bandwidth', null=True, blank=True )
 
     class Meta:
         verbose_name = 'Network'
-        verbose_name_plural = 'Network'
 
     def __str__(self):
-        return 'Bandwidth Settings'
+        return 'Network Settings'
 
 
 class Vouchers(models.Model):
@@ -283,7 +286,7 @@ class Vouchers(models.Model):
         verbose_name_plural = 'Vouchers'
 
     def __str__(self):
-        return 'Voucher ' + self.Voucher_code
+        return self.Voucher_code
 
 
 class Device(models.Model):
@@ -296,8 +299,7 @@ class Device(models.Model):
     Sync_Time = models.DateTimeField(default=timezone.now, null=True, blank=True)
 
     class Meta:
-        verbose_name = 'Hardware Setting'
-        verbose_name_plural = 'Hardware Settings'
+        verbose_name = 'Hardware'
 
     def __str__(self):
         return 'Hardware Settings'
@@ -311,8 +313,7 @@ class PushNotifications(models.Model):
     notification_trigger_time = models.DurationField(default=timezone.timedelta(minutes=0), help_text="Notification will fire when time is equal to the specified trigger time. Format: hh:mm:ss", null=True, blank=True)
 
     class Meta:
-        verbose_name = "Push Notifications Setting"
-        verbose_name_plural = "Push Notification Settings"
+        verbose_name = "Push Notifications"
 
     def __str__(self):
         return "Push Notification Settings"
