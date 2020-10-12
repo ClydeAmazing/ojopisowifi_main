@@ -1,0 +1,507 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static jazzmin %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block content_title %} {% trans 'Dashboard' %} {% endblock %}
+
+{% block breadcrumbs %}
+    <ol class="breadcrumb float-sm-right">
+        <li class="breadcrumb-item"><a href="{% url 'admin:index' %}"><i class="fa fa-tachometer-alt"></i> {% trans 'Home' %}</a></li>
+        <li class="breadcrumb-item">{% trans 'Dashboard' %}</li>
+    </ol>
+{% endblock %}
+
+
+{% block content %}
+    {% csrf_token %}
+    <div class="container-fluid">
+        <!-- Info boxes -->
+        <div class="row">
+          <div class="col-12 col-sm-6 col-md-3">
+            <div class="info-box">
+              <span class="info-box-icon bg-info elevation-1"><i class="fas fa-users"></i></span>
+
+              <div class="info-box-content">
+                <span class="info-box-text">Current Users</span>
+                <span class="info-box-number" id=box_current_users></span>
+              </div>
+              <!-- /.info-box-content -->
+            </div>
+            <!-- /.info-box -->
+          </div>
+          <!-- /.col -->
+          <div class="col-12 col-sm-6 col-md-3">
+            <div class="info-box mb-3">
+              <span class="info-box-icon bg-danger elevation-1"><i class="fas fa-thumbs-up"></i></span>
+
+              <div class="info-box-content">
+                <span class="info-box-text">Total Users</span>
+                <span class="info-box-number" id="box_total_users"></span>
+              </div>
+              <!-- /.info-box-content -->
+            </div>
+            <!-- /.info-box -->
+          </div>
+          <!-- /.col -->
+
+          <!-- fix for small devices only -->
+          <div class="clearfix hidden-md-up"></div>
+
+          <div class="col-12 col-sm-6 col-md-3">
+            <div class="info-box mb-3">
+              <span class="info-box-icon bg-success elevation-1"><i class="fas fa-shopping-cart"></i></span>
+
+              <div class="info-box-content">
+                <span class="info-box-text">Sales</span>
+                <span class="info-box-number" id="box_sales"></span>
+              </div>
+              <!-- /.info-box-content -->
+            </div>
+            <!-- /.info-box -->
+          </div>
+          <!-- /.col -->
+          <div class="col-12 col-sm-6 col-md-3">
+            <div class="info-box mb-3">
+              <span class="info-box-icon bg-warning elevation-1"><i class="fas fa-mobile"></i></span>
+
+              <div class="info-box-content">
+                <span class="info-box-text">New Devices</span>
+                <span class="info-box-number" id="box_new_devices"></span>
+              </div>
+              <!-- /.info-box-content -->
+            </div>
+            <!-- /.info-box -->
+          </div>
+          <!-- /.col -->
+        </div>
+        
+        <div class="row">
+            <!-- Sales Graph -->
+            <div class="col-lg-8">
+            <!-- Custom tabs (Charts with tabs)-->
+                <div class="card bg-gradient-info">
+                    <div class="card-header border-0">
+                        <h3 class="card-title">
+                            <i class="fas fa-th mr-1"></i>
+                            Sales Graph
+                        </h3>
+
+                        <div class="card-tools">
+                            <button type="button" class="btn bg-info btn-sm" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <button type="button" class="btn bg-info btn-sm" data-card-widget="remove">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body"><div class="chartjs-size-monitor"><div class="chartjs-size-monitor-expand"><div class=""></div></div><div class="chartjs-size-monitor-shrink"><div class=""></div></div></div>
+                        <canvas class="chart chartjs-render-monitor" id="line-chart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%; display: block; width: 577px;" width="577" height="250"></canvas>
+                    </div>
+                    <!-- /.card-body -->
+                    <div class="card-footer bg-transparent">
+                        <div class="row">
+                            <div class="col-3">
+                                <button type="button" class="btn btn-sm btn-warning" data-toggle="modal" data-target="#reset-modal"><span class="fa fa-window-close"></span>  Reset</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /.card-footer -->
+                </div>
+                <!-- /.card -->
+            </div>
+
+            <div class="col-lg-4">
+                <div class="info-box mb-3" id="activation_status_box">
+                    <span class="info-box-icon"><i class="fas fa-key"></i></span>
+                    <div class="info-box-content">
+                        <span class="info-box-text">Activation Status</span>
+                        <span class="info-box-number"></span>
+                    </div>
+                </div>
+
+                <div class="card" id="activation_card">
+                    <div class="card-header border-0">
+                        <h3 class="card-title">
+                            <i class="fas fa-th mr-1"></i>
+                            Device Activation
+                        </h3>
+
+                        <div class="card-tools">
+                            <button type="button" class="btn bg-info btn-sm" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <button type="button" class="btn bg-info btn-sm" data-card-widget="remove">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body py-2">
+                        <div class="row">
+                            <div class="col">
+                                <p class="mb-2">Registration Code:</p>
+                                <input type="text" class="form-control mb-2" readonly id="text-registration-code">
+                                <button type="button" class="btn btn-sm btn-primary mb-3 btn-generate">Generate</button>
+                                <p class="mb-2">Activation Key:</p>
+                                <input type="text" class="form-control mb-2" placeholder="Paste activation here" id="text-activation-key" spellcheck="false">
+                                <input type="submit" class="btn btn-sm btn-success mb-2 btn-activate" value="Activate"></input>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header border-0">
+                        <h3 class="card-title">
+                            <i class="fas fa-th mr-1"></i>
+                            Device
+                        </h3>
+
+                        <div class="card-tools">
+                            <button type="button" class="btn bg-info btn-sm" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <button type="button" class="btn bg-info btn-sm" data-card-widget="remove">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body py-2">
+                        <div class="row">
+                        <div class="col-lg-6 mb-2">
+                            <button type="button" class="btn btn-warning w-100" data-toggle="modal" data-target="#reboot-modal">
+                                <i class="fa fa-undo"></i> Reboot Device
+                            </button>
+                        </div>
+                        <div class="col-lg-6">
+                            <button type="button" class="btn btn-danger w-100" data-toggle="modal" data-target="#poweroff-modal">
+                                <i class="fas fa-power-off"></i> Power Off
+                            </button>
+                        </div>
+                        </div>
+                    </div>
+                    <!-- /.card-body -->
+                    <!-- <div class="card-footer bg-transparent">
+                    </div> -->
+                    <!-- /.card-footer -->
+                </div>
+            </div>    
+
+        </div>
+
+    </div>
+    <!-- Modals -->
+    <div class="modal fade" id="loader-modal" data-keyboard="false" role="dialog" data-backdrop="static">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <div class="loader-text"><span class="fa fa-spinner fa-spin"></span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loader Modal -->
+    <div class="modal fade" id="reset-modal">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title">Confirm</h6>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <button type="button" class="btn btn-sm btn-success btn-reset w-100" data-dismiss="modal">Continue</button>
+                        </div>
+                        <div class="col-lg-6">
+                            <button type="button" class="btn btn-sm btn-danger w-100" data-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="reboot-modal">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title">Confirm</h6>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <button type="button" class="btn btn-sm btn-success btn-reboot w-100" data-dismiss="modal">Continue</button>
+                        </div>
+                        <div class="col-lg-6">
+                            <button type="button" class="btn btn-sm btn-danger w-100" data-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="poweroff-modal">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title">Confirm</h6>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <button type="button" class="btn btn-sm btn-success btn-poweroff w-100" data-dismiss="modal">Continue</button>
+                        </div>
+                        <div class="col-lg-6">
+                            <button type="button" class="btn btn-sm btn-danger w-100" data-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="modal fade" data-keyboard="false" data-backdrop="static">
+        <div class="modal-dialog modal-confirm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="icon-box">
+                        <i class="fa fa-check"></i>
+                    </div>
+                </div>
+                <div class="modal-body text-center">
+                    <h4>Great!</h4> 
+                    <p>Your device has been activated successfully.</p>
+                    <button class="btn btn-success" data-dismiss="modal" onclick="window.location.href='/app/admin';"><span>Got it</span></button>
+                </div>
+            </div>
+        </div>
+    </div> 
+    <!-- End Success Modal -->
+
+    <!-- Error Modal -->
+    <div id="error-modal" class="modal fade">
+        <div class="modal-dialog modal-confirm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="icon-box">
+                        <i class="fa fa-times"></i>
+                    </div>              
+                    <!-- <h4 class="modal-title">Are you sure?</h4>   -->
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                </div>
+                <div class="modal-body text-center">
+                    <h4>Sorry :(</h4>
+                    <p>You've entered an invalid activation code.</p>
+                    <button class="btn btn-success" data-dismiss="modal">Try again</button>
+                    <!-- <p>Please try again.</p> -->
+                </div>
+            </div>
+        </div>
+    </div>     
+    <!-- End Error Modal -->
+
+{% endblock %}
+
+{% block extrajs %}
+    <script src="/static/vendors/chart.js/Chart.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            var current_users = document.getElementById('box_current_users');
+            var total_users = document.getElementById('box_total_users');
+            var sales = document.getElementById('box_sales');
+            var new_devices = document.getElementById('box_new_devices');
+            var activation_status_box = document.getElementById('activation_status_box');
+            var activation_card = document.getElementById('activation_card')
+            var token = $('input[name=csrfmiddlewaretoken]').val();
+            var dashboard_data
+            var sales_trend_labels = []
+            var sales_trend_values = []
+            var total_sales = 0
+
+            // Sales Trend
+            var salesGraphChartCanvas = $('#line-chart').get(0).getContext('2d');
+
+            var salesGraphChartData = {
+                labels  : [],
+                datasets: [
+                    {
+                        label               : 'Sales',
+                        fill                : false,
+                        borderWidth         : 2,
+                        lineTension         : 0,
+                        spanGaps : true,
+                        borderColor         : '#efefef',
+                        pointRadius         : 3,
+                        pointHoverRadius    : 7,
+                        pointColor          : '#efefef',
+                        pointBackgroundColor: '#efefef',
+                        data                : []
+                    }
+                ]
+            }
+
+            var salesGraphChartOptions = {
+                maintainAspectRatio : false,
+                responsive : true,
+                legend: {
+                  display: false,
+                },
+                scales: {
+                  xAxes: [{
+                    ticks : {
+                      fontColor: '#efefef',
+                    },
+                    gridLines : {
+                      display : false,
+                      color: '#efefef',
+                      drawBorder: false,
+                    }
+                  }],
+                  yAxes: [{
+                    ticks : {
+                      stepSize: 10,
+                      fontColor: '#efefef',
+                    },
+                    gridLines : {
+                      display : true,
+                      color: '#bdbdbd',
+                      drawBorder: false,
+                    }
+                  }]
+                }
+              }
+
+            // This will get the first returned node in the jQuery collection.
+            var salesGraphChart = new Chart(salesGraphChartCanvas, { 
+                type: 'line', 
+                data: salesGraphChartData, 
+                options: salesGraphChartOptions
+                }
+            )
+
+            function addData(chart, label, data) {
+                chart.data.labels = label
+                chart.data.datasets[0].data = data
+                chart.update();
+            }
+
+
+            $.ajax({
+                method: 'GET',
+                url: '/app/api/dashboard_data/',
+                success: function(result){
+                    dashboard_data = result
+                    current_users.innerText = result.connected_count
+                    total_users.innerText = result.connected_count + result.disconnected_count
+
+                    if(result.license_status === 'Activated'){
+                        activation_status_box.classList.add('bg-success')
+                        activation_status_box.querySelector('.info-box-number').innerText = 'Activated'
+                        activation_card.classList.add('d-none')
+                    }else{
+                        activation_status_box.classList.add('bg-danger')
+                        activation_status_box.querySelector('.info-box-number').innerText = 'Not Activated'
+                    }
+
+                    result.sales_trend.forEach(function(item){
+                        sales_trend_labels.push(item[0]);
+                        sales_trend_values.push(item[1])
+                        total_sales += item[1]
+                    })
+                    sales.innerText = total_sales
+
+                    addData(salesGraphChart, sales_trend_labels, sales_trend_values)
+
+                }
+            });
+
+            function device_action(request, text) {
+                action = request.action
+                var data = {
+                    'action': action,
+                    'csrfmiddlewaretoken': token,
+                    'key': request.key
+                    }
+                $.ajax({
+                    method: 'POST',
+                    url: '/app/api/dashboard_data/',
+                    data: data,
+                    success: function(result){
+                        if (['reboot', 'poweroff'].includes(action)){
+                            $("#loader-modal .loader-text").append(text)
+                            $("#loader-modal").modal('show');
+                            setTimeout(function(){
+                                window.location.href='/app/admin'
+                            }, 15000);
+                        }else if (action == 'reset'){
+                            $("#loader-modal .loader-text").append(text)
+                            $("#loader-modal").modal('show');
+                            setTimeout(function(){
+                                window.location.href='/app/admin'
+                            }, 2000);
+                        }else if (action == 'generate'){
+                            $("#text-registration-code").val(result.message);
+                            $(".btn-generate").prop('disabled', true);
+                        }else if (action == 'activate'){
+                            if (result.message == 'Success'){
+                                $("#success-modal").modal("show");
+                                $("#text-activation-key").addClass("is-valid")
+                            }
+                            if (result.message == 'Error'){
+                                $("#error-modal").modal("show");
+                                $("#text-activation-key").addClass("is-invalid");
+
+                            }
+                        }
+                        
+                    }
+                });
+                
+            }
+
+            // Reset Ledger
+            $('.btn-reset').on('click', function(){
+                data = {'action': 'reset'}
+                device_action(data, '   Clearing ledger..');
+            })
+
+            // Device Actions 
+            $('.btn-reboot').on('click', function(){
+                data = {'action': 'reboot'}
+                device_action(data, '   Rebooting..');
+            })
+
+            $('.btn-poweroff').on('click', function(){
+                data = {'action': 'poweroff'}
+                device_action(data, '   Shutting down..');
+            })
+
+            // Activation Actions
+            $('.btn-generate').on('click', function(e){
+                data = {'action': 'generate'}
+                device_action(data, '   Generating key..');
+            })
+
+            $('.btn-activate').on('click', function(e){
+
+                if(!$("#text-activation-key").val()){
+                    $("#text-activation-key").addClass("is-invalid")
+                }else{
+                    key = $("#text-activation-key").val()
+                    data = {'action': 'activate', 'key': key}
+                    device_action(data, '   Activating device..');
+                }
+            })
+
+        })
+    </script>
+{% endblock %}
+
+

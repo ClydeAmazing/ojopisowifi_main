@@ -119,7 +119,6 @@ class LedgerAdmin(admin.ModelAdmin):
 class SettingsAdmin(Singleton, admin.ModelAdmin):
     form = forms.SettingsForm
     list_display = ('Hotspot_Name', 'Hotspot_Address', 'Slot_Timeout', 'Rate_Type', 'Base_Value', 'Inactive_Timeout', 'Coinslot_Pin', 'Light_Pin')
-    readonly_fields = ('background_preview',)
     
     def background_preview(self, obj):
         return obj.background_preview
@@ -244,8 +243,9 @@ class PushNotificationsAdmin(Singleton, admin.ModelAdmin):
     def has_delete_permission(self, *args, **kwargs):
         return False
 
-    def has_view_permission(self, *args, **kwargs):
-        return False
+    def has_change_permission(self, request, *args, **kwargs):
+        res = client_check(request)
+        return res
 
     def message_user(self, *args): # overridden method
         pass
@@ -271,3 +271,4 @@ admin_name = settings.Hotspot_Name
 
 admin.AdminSite.site_header = admin_name
 admin.AdminSite.site_title = admin_name
+admin.AdminSite.index_template = 'admin/index2.html'

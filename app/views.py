@@ -523,87 +523,6 @@ class ActivateDevice(View):
             response['message'] = 'Error'
             return JsonResponse(response)
 
-
-class Control(View):
-    template_name = 'control.html'
-
-    def post(self, request):
-        if request.is_ajax() and request.user.is_authenticated:
-            response = dict()
-            action = request.POST.get("action", None)
-            if action:
-                dev = models.Device.objects.get(pk=1)
-                if action == 'poweroff':
-                    dev.action = 1
-                elif action == 'reboot':
-                    dev.action = 2
-                elif action == 'refresh':
-                    dev.action = 3
-
-                dev.save()
-                response['message'] = 'Success'
-
-            return JsonResponse(response)
-        else:
-            raise Http404("Page not found")
-
-
-    def get(self, request):
-        serial_error = 'You obtained an unauthorized copy of the software. Wifi hotspot customizations is limited. Please contact seller.'
-        action = request.GET.get("action", None)
-
-        info = dict()
-
-        if action == 'reset':
-            models.Ledger.objects.all().delete()
-        
-        settings = models.Settings.objects.get(pk=1)
-        try:
-            ledger = models.Ledger.objects.all()
-            sum_ledger = ledger.aggregate(denom=Sum('Denomination'))
-            info['denom'] = sum_ledger['denom'] if sum_ledger['denom'] else 0
-        except ObjectDoesNotExist:
-            info['denom'] = 0
-
-        connected_count = 0
-        disconnected_count = 0
-        
-        clients = models.Clients.objects.all()
-        for client in clients:
-            if client.Connection_Status == 'Connected':
-                connected_count += 1
-            else:
-                disconnected_count += 1
-
-        info['connected_count'] = connected_count
-        info['disconnected_count'] = disconnected_count
-        info['count'] = ledger.count()
-        info['hotspot'] = settings.Hotspot_Name
-        info['slot_timeout'] = settings.Slot_Timeout
-
-        try:
-            device = models.Device.objects.get(pk=1)
-            cc_res = cc()
-            if cc_res or request.user.is_superuser:
-                info['message'] = None
-            else:
-                messages.error(request, serial_error)
-                info['message'] = serial_error
-
-            if not cc_res:
-                info['license_status'] = 'Not Activated'
-                info['license'] = None
-            else:
-                info['license_status'] = 'Activated'
-                info['license'] = device.Device_ID
-
-            return render(request, self.template_name, context=info)
-
-        except ObjectDoesNotExist:
-            return HttpResponse(serial_error)
-
-# End of Control Section
-
 class Sweep(View):
 
     def get(self, request):
@@ -645,7 +564,7 @@ class Sweep(View):
         else:
             raise Http404("Page not found")
 
-# class EloadPortal(View):
-#     template_name = 'eload_portal.html'
-#     def get(self, request, template_name=template_name):
-#         return render(request, template_name, context={})
+class EloadPortal(View):
+    template_name = 'admin/index.html'
+    def get(self, request, template_name=template_name):
+        return render(request, template_name, context={})

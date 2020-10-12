@@ -2,7 +2,6 @@ from django.core.exceptions import ValidationError
 from django.contrib import messages
 from django.db import models
 from datetime import datetime, timedelta
-from django.utils.html import mark_safe
 from django.utils import timezone
 from django.urls import reverse
 import subprocess
@@ -95,8 +94,8 @@ class Whitelist(models.Model):
     Device_Name = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
-        verbose_name = 'Whitelisted Device'
-        verbose_name_plural = 'Whitelisted Devices'
+        verbose_name = 'Allowed Client'
+        verbose_name_plural = 'Allowed Clients'
 
     def __str__(self):
         name =  self.MAC_Address if not self.Device_Name else self.Device_Name
@@ -211,13 +210,6 @@ class Settings(models.Model):
     Disable_Pause_Time = models.DurationField(default=timezone.timedelta(minutes=0), null=True, blank=True, help_text='Disables Pause time button if remaining time is less than the specified time hh:mm:ss format.')
     Coinslot_Pin = models.IntegerField(verbose_name='Coinslot Pin', help_text='Please refer raspberry/orange pi GPIO.BOARD pinout.', null=True, blank=True)
     Light_Pin = models.IntegerField(verbose_name='Light Pin', help_text='Please refer raspberry/orange pi GPIO.BOARD pinout.', null=True, blank=True)
-    
-
-    @property
-    def background_preview(self):
-        if self.BG_Image:
-            return mark_safe('<img src="{}" width="500" height="200" />'.format(self.BG_Image.url))
-        return ""
 
     def clean(self, *args, **kwargs):
         if self.Coinslot_Pin or self.Light_Pin:
@@ -225,17 +217,17 @@ class Settings(models.Model):
                 raise ValidationError('Coinslot Pin should not be the same as Light Pin.')
 
     class Meta:
-        verbose_name = 'PISO Wifi'
+        verbose_name = 'Settings'
 
     def __str__(self):
-        return 'PISO Wifi Settings'
+        return 'Settings'
 
 class Network(models.Model):
     Edit = "Edit"
-    Server_IP = models.GenericIPAddressField(protocol='IPv4', default='10.0.0.1', null=False, blank=False)
+    Server_IP = models.GenericIPAddressField(verbose_name='Server IP', protocol='IPv4', default='10.0.0.1', null=False, blank=False)
     Netmask = models.GenericIPAddressField(protocol='IPv4', default='255.255.255.0', null=False, blank=False)
-    DNS_1 = models.GenericIPAddressField(protocol='IPv4', verbose_name='DNS', default='8.8.8.8', null=False, blank=False)
-    DNS_2 = models.GenericIPAddressField(protocol='IPv4', verbose_name='Alternate DNS', default='8.8.4.4', null=True, blank=True)
+    DNS_1 = models.GenericIPAddressField(protocol='IPv4', verbose_name='DNS 1', default='8.8.8.8', null=False, blank=False)
+    DNS_2 = models.GenericIPAddressField(protocol='IPv4', verbose_name='DNS 2 (Optional)', default='8.8.4.4', null=True, blank=True)
     Upload_Rate = models.IntegerField(verbose_name='Upload Bandwidth', help_text='Specify global internet upload bandwidth in Kbps. No value = unlimited bandwidth', null=True, blank=True )
     Download_Rate = models.IntegerField(verbose_name='Download Bandwidth', help_text='Specify global internet download bandwidth in Kbps. No value = unlimited bandwidth', null=True, blank=True )
 
@@ -308,9 +300,9 @@ class PushNotifications(models.Model):
     Enabled = models.BooleanField(default=False)
     app_id = models.CharField(verbose_name = "OneSignal App ID", max_length=255, null=True, blank=True)
     api_key = models.CharField(verbose_name="OneSignal API Key", max_length=255, null=True, blank=True)
-    notification_title = models.CharField(max_length=255, null=True, blank=True)
-    notification_message = models.CharField(max_length=255, null=True, blank=True)
-    notification_trigger_time = models.DurationField(default=timezone.timedelta(minutes=0), help_text="Notification will fire when time is equal to the specified trigger time. Format: hh:mm:ss", null=True, blank=True)
+    notification_title = models.CharField(verbose_name="Notification Title", max_length=255, null=True, blank=True)
+    notification_message = models.CharField(verbose_name="Notification Message", max_length=255, null=True, blank=True)
+    notification_trigger_time = models.DurationField(verbose_name="Notification Trigger", default=timezone.timedelta(minutes=0), help_text="Notification will fire when time is equal to the specified trigger time. Format: hh:mm:ss", null=True, blank=True)
 
     class Meta:
         verbose_name = "Push Notifications"

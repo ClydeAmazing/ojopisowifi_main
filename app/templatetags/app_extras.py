@@ -4,6 +4,14 @@ import math
 
 register = template.Library()
 
+def pluralize(number, hand):
+	if number == 1:
+		return str(number) + " " + hand + " "
+	elif number > 1:
+		return str(number) + " " + hand + "s "
+	else:
+		return ""
+
 @register.filter
 def duration(td):
 	if not td:
@@ -19,17 +27,9 @@ def duration(td):
 	minutes = math.floor((total_seconds % 3600) / 60)
 	seconds = math.floor((total_seconds % 60))
 
-	time = ''
-	if days > 0:
-		time += '{} day '.format(str(days))
-
-	if hours > 0:
-		time += '{} hr '.format(str(hours))
-
-	if minutes > 0:
-		time += '{} min '.format(str(minutes))
-
-	if seconds > 0:
-		time += '{} sec'.format(str(seconds))
+	time = pluralize(days, 'day')
+	time += pluralize(hours, 'hr')
+	time += pluralize(minutes, 'min')
+	time += pluralize(seconds, 'sec')
 
 	return time

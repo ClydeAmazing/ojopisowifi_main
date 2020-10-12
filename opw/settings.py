@@ -11,7 +11,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '71ic+-tfsl2ie0aq76yx+j8&2&zqe^y(d6-cl05(!-$%5is-0j'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'app',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -81,21 +82,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# CELERY STUFF
-# CELERY_BROKER_URL = 'redis://localhost:6379'
-# CELERY_RESULT_BACKEND = 'redis://localhost:6379'
-# CELERY_ACCEPT_CONTENT = ['application/json']
-# CELERY_TASK_SERIALIZER = 'json'
-# CELERY_RESULT_SERIALIZER = 'json'
-# CELERY_TIMEZONE = 'Asia/Shanghai'
-
 JAZZMIN_SETTINGS = {
     'copyright': 'OJO PISOWifi',
-    'topmenu_links': [
-        {'name': 'Control', 'url': '/app/control'},
-    ],
-    'show_ui_builder': True,
-    'order_with_respect_to': ['app',],
+    'show_ui_builder': False,
+    'order_with_respect_to': ['app', 'app.Clients', 'app.Whitelist', 'app.Rates', 'app.Vouchers', 'app.CoinSlot', 'app.CoinQueue', 'app.Ledger'],
     'icons': {
         'app.clients': 'fas fa-users',
         'app.coinqueue': 'fas fa-coins',
@@ -109,6 +99,7 @@ JAZZMIN_SETTINGS = {
         'app.vouchers': 'fas fa-address-card',
         'app.Whitelist': 'fas fa-clipboard-check', 
     },
+    'custom_css': '/build/css/dashboard.css',
 }
 
 JAZZMIN_UI_TWEAKS = {
@@ -129,6 +120,14 @@ JAZZMIN_UI_TWEAKS = {
     "sidebar_nav_flat_style": False
 }
 
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ]
+}
+
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'Asia/Shanghai'
@@ -144,7 +143,3 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static/")
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "static/background/")
 MEDIA_URL = '/background/'
-
-LOGIN_URL = '/app/admin/login/'
-LOGIN_REDIRECT_URL = '/app/control'
-LOGOUT_REDIRECT_URL = '/app/control'
