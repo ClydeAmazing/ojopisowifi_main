@@ -121,10 +121,24 @@ class Ledger(models.Model):
 
 
 class CoinSlot(models.Model):
+    def generate_code(size=10):
+        found = False
+        random_code = None
+
+        while not found:
+            random_code = ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(size))
+            count = Vouchers.objects.filter(Voucher_code=random_code).count()
+            if count == 0:
+                found = True
+
+        return random_code
+
     Edit = 'Edit'
     Client = models.CharField(max_length=17, null=True, blank=True)
-    Last_Updated = models.DateTimeField()
-    Slot_ID = models.CharField(max_length=10)
+    Last_Updated = models.DateTimeField(null=True, blank=True)
+    Slot_ID = models.CharField(default=generate_code, unique=True, max_length=10, null=False, blank=False)
+    Slot_Address = models.CharField(unique=True, max_length=17, null=False, blank=False, default='00:00:00:00:00:00')
+    Slot_Desc = models.CharField(max_length=50, null=True, blank=True, verbose_name='Description')
 
     class Meta:
         verbose_name = 'Coin Slot'

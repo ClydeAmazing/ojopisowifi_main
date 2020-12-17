@@ -18,8 +18,6 @@ from app import models
 import subprocess
 import time, math, json
 
-import OPi.GPIO as GPIO
-
 local_ip = ['::1', '127.0.0.1', '10.0.0.1']
 
 def api_response(code):
@@ -73,10 +71,7 @@ def api_response(code):
     return  response
 
 
-class Portal(View):
-    template_name = 'captive.html'
-    
-    def getDeviceInfo(self, request):
+def getDeviceInfo(request):
         info = dict()
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         
@@ -91,6 +86,10 @@ class Portal(View):
         info['mac'] = mac
         return info
 
+
+class Portal(View):
+    template_name = 'captive.html'
+    
     def getClientInfo(self, ip, mac):
         info = dict()
 
@@ -175,7 +174,7 @@ class Portal(View):
         return info
 
     def get(self, request, template_name=template_name):
-        device_info = self.getDeviceInfo(request)
+        device_info = getDeviceInfo(request)
         ip = device_info['ip']
         mac = device_info['mac']
         info = self.getClientInfo(ip, mac)
@@ -223,7 +222,7 @@ class Slot(View):
                     slot_info.Last_Updated = timezone.now()
                     slot_info.save()
 
-                    subprocess.run(['gpio', '-1', 'write', str(settings.Light_Pin), '1'])
+                    # subprocess.run(['gpio', '-1', 'write', str(settings.Light_Pin), '1'])
                     resp = api_response(200)
 
                 except ObjectDoesNotExist:
@@ -234,7 +233,7 @@ class Slot(View):
                         slot_info.Last_Updated = timezone.now()
                         slot_info.save()
 
-                        subprocess.run(['gpio', '-1', 'write', str(settings.Light_Pin), '1'])
+                        # subprocess.run(['gpio', '-1', 'write', str(settings.Light_Pin), '1'])
                         resp = api_response(200)
                     else:
                         resp = api_response(600)
@@ -273,13 +272,15 @@ class Pay(View):
             raise Http404("Page not found")
 
     def post(self, request):
-        if request.is_ajax() and request.META['REMOTE_ADDR'] in local_ip:
-            slot_id = request.POST.get('slot_id')
+        if not request.is_ajax(): # and request.META['REMOTE_ADDR'] in local_ip:
+            device = getDeviceInfo(request)
+            # slot_id = request.POST.get('slot_id')
+            device_MAC = device['mac']
             identifier = request.POST.get('identifier')
             pulse = int(request.POST.get('pulse', 0))
 
             try:
-                slot_info = models.CoinSlot.objects.get(id=slot_id, Slot_ID=identifier)
+                slot_info = models.CoinSlot.objects.get(Slot_Address=device_MAC, Slot_ID=identifier)
             except ObjectDoesNotExist:
                 resp = api_response(400)
 
@@ -298,7 +299,7 @@ class Pay(View):
                         ledger = models.Ledger()
                         ledger.Client = connected_client
                         ledger.Denomination = rates.Denom
-                        ledger.Slot_No = slot_id
+                        ledger.Slot_No = slot_info.pk
                         ledger.save()
 
                         q, _ = models.CoinQueue.objects.get_or_create(Client=connected_client)
@@ -333,7 +334,7 @@ class Commit(View):
             time_diff = timedelta.total_seconds(timezone.now()-slot.Last_Updated)
             if timedelta(seconds=time_diff).total_seconds() > timeout:
                 data['Status'] = 'Available'
-                subprocess.run(['gpio', '-1', 'write', str(settings.Light_Pin), '0'])
+                # subprocess.run(['gpio', '-1', 'write', str(settings.Light_Pin), '0'])
             else:
                 data['Status'] = 'Not Available'
 
@@ -372,7 +373,7 @@ class Browse(View):
                 coin_slot.Last_Updated = coin_slot.Last_Updated - timedelta(seconds=timeout)
                 coin_slot.save()
 
-                subprocess.run(['gpio', '-1', 'write', str(settings.Light_Pin), '0'])
+                # subprocess.run(['gpio', '-1', 'write', str(settings.Light_Pin), '0'])
 
                 resp = api_response(200)
 

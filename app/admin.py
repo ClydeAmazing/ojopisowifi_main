@@ -98,7 +98,8 @@ class WhitelistAdmin(admin.ModelAdmin):
 
 
 class CoinSlotAdmin(admin.ModelAdmin):
-    list_display = ('Edit', 'Client', 'Last_Updated')
+    list_display = ('Edit', 'Slot_ID', 'Slot_Desc')
+    readonly_fields = ('Client', 'Last_Updated')
 
     # def has_add_permission(self, *args, **kwargs):
     #     return not models.CoinSlot.objects.exists()

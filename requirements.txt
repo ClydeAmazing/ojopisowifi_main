@@ -4,3 +4,5 @@ rsa==4.6
 getmac==0.8.2
 Pillow==7.2.0
 celery==4.4.7
+django-jazzmin==2.2.11
+djangorestframework==3.12.1
