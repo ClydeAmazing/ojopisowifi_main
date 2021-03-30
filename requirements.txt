@@ -1,4 +1,4 @@
-Django==3.0.8
+Django==3.0.12
 cryptography==2.9.2
 rsa==4.6
 getmac==0.8.2
