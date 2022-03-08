@@ -3,6 +3,6 @@ cryptography==2.9.2
 rsa==4.6
 getmac==0.8.2
 Pillow==9.0.0
-celery==4.4.7
+celery==5.2.2
 django-jazzmin==2.2.11
 djangorestframework==3.12.1
