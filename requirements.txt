@@ -1,5 +1,5 @@
 Django==3.1.14
-cryptography==3.3.2
+cryptography==39.0.1
 rsa==4.7
 getmac==0.8.2
 Pillow==9.0.1
